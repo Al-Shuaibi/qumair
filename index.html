@@ -56,6 +56,7 @@ class Component extends DCLogic {
   annoyT = -1e9; hover = false; c = BASE(); cache = new Map(); speakId = 0;
 
   async componentDidMount() {
+    if(new URLSearchParams(window.location?.search||'').get('section')==='female')this.setState({voiceProfile:'female',elevenVoice:this.state.femaleVoice,bubble:'أهلًا، أنا قُمَيرة، رفيقتك في استكشاف الفضاء وإنجازات السعودية.'});
     this.hasMic = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
     this.onVoices = () => this.forceUpdate();
     window.speechSynthesis?.addEventListener('voiceschanged', this.onVoices);
@@ -112,6 +113,7 @@ class Component extends DCLogic {
       const g = onSurf(new T.Group(), x, 0.12, 1.012);
       const pupil = new T.Group(); g.add(pupil);
       const ball = new T.Mesh(new T.SphereGeometry(1, 32, 24), mInk); ball.scale.set(0.105, 0.068, 0.045); pupil.add(ball);
+      const iris=new T.Mesh(new T.SphereGeometry(1,24,20),mInk);iris.scale.set(.065,.09,.025);iris.position.set(0,0,.07);pupil.add(iris);iris.visible=false;
       const h1 = new T.Mesh(new T.SphereGeometry(0.022, 16, 12), mWhite); h1.position.set(-0.028, 0.025, 0.041); pupil.add(h1);
       const h2 = new T.Mesh(new T.SphereGeometry(0.02, 12, 10), mWhite); h2.position.set(0.055, -0.06, 0.07); h2.visible=false; pupil.add(h2);
       const happy = new T.Mesh(new T.TorusGeometry(0.11, 0.028, 12, 32, Math.PI), mInk); happy.position.set(0, -0.03, 0.03); g.add(happy);
@@ -121,7 +123,7 @@ class Component extends DCLogic {
       const bw = onSurf(new T.Group(), x, 0.37, 1.02); const bwIn = new T.Group(); bw.add(bwIn); bwIn.add(capsule(0.10, 0.015, mInkSoft));
       const lashes=new T.Group();pupil.add(lashes);for(let j=0;j<2;j++){const lash=capsule(.035,.006,mInk);lash.position.set((i?1:-1)*(.083+j*.019),.024+j*.01,.034);lash.rotation.z=(i?1:-1)*(.45+j*.18);lashes.add(lash);}lashes.visible=false;
       const arch=new T.Mesh(new T.TorusGeometry(.13,.012,8,28,Math.PI*.66),mInkSoft);arch.rotation.z=Math.PI*.17;arch.position.set(0,-.065,.01);bw.add(arch);arch.visible=false;
-      return { pupil, ball, highlight:h1, highlight2:h2, happy, sq, bw, bwIn, lashes, arch };
+      return { pupil, ball, iris, ink:mInk, white:mWhite, highlight:h1, highlight2:h2, happy, sq, bw, bwIn, lashes, arch };
     });
     this.cheeks = [-0.62, 0.62].map(x => { const c = onSurf(new T.Mesh(new T.PlaneGeometry(0.34, 0.24), this.mCheek), x, -0.1, 1.006); c.visible=false; return c; });
     const mouthG = onSurf(new T.Group(), 0, -0.27, 1.015);
@@ -181,11 +183,11 @@ class Component extends DCLogic {
   }
   applyProfile(profile=this.state.voiceProfile) {
     const female=profile==='female';
-    if(this.bodyMaterial){this.bodyMaterial.color.setHex(female?0xe8e3f1:0xc5d5df);this.bodyMaterial.map=null;this.bodyMaterial.bumpMap=female?null:this.relief;this.bodyMaterial.bumpScale=female?0:.01;this.bodyMaterial.roughness=female?.62:.75;this.bodyMaterial.needsUpdate=true;}
+    if(this.bodyMaterial){this.bodyMaterial.color.setHex(female?0xe8e3f1:0xeee4d4);this.bodyMaterial.map=null;this.bodyMaterial.bumpMap=null;this.bodyMaterial.bumpScale=0;this.bodyMaterial.roughness=female?.62:.65;this.bodyMaterial.needsUpdate=true;}
     if(this.headMesh)this.headMesh.scale.set(1,female?1:.98,1);
     this.cheeks?.forEach(c=>c.visible=female);if(this.starGroup)this.starGroup.visible=female;
     this.badgeMaterial?.color.setHex(female?0xd4ae78:0x8bbad3);
-    this.eyes?.forEach(e=>{e.lashes.visible=female;e.bwIn.visible=!female;e.bwIn.scale.set(1.65,1.4,1);e.arch.visible=female;e.ball.scale.set(female?.115:.145,female?.16:.10,.065);e.highlight.position.set(female?-.037:-.043,female?.065:.034,.062);e.highlight.scale.setScalar(female?1.35:.7);e.highlight2.visible=female;e.highlight2.position.set(.045,-.06,.065);e.lashes.scale.set(1.45,2.2,1.3);e.lashes.position.y=.06;});
+    this.eyes?.forEach(e=>{e.lashes.visible=female;e.bwIn.visible=!female;e.bwIn.scale.set(1.35,.95,1);e.arch.visible=female;e.ball.material=female?e.ink:e.white;e.ball.scale.set(female?.115:.135,female?.16:.14,.065);e.iris.visible=!female;e.highlight.position.set(female?-.037:-.025,female?.065:.038,female?.062:.095);e.highlight.scale.setScalar(female?1.35:1);e.highlight2.visible=true;e.highlight2.position.set(female?.045:.025,female?-.06:-.035,female?.065:.092);e.highlight2.scale.setScalar(female?1:.5);e.lashes.scale.set(1.45,2.2,1.3);e.lashes.position.y=.06;});
     if(this.m){this.m.smile.scale.set(female?.8:1.35,female?.75:.7,1);this.m.talk.scale.set(female?1:1.2,1,1);}
     this.identity?.rotation.set(0,0,female?.35:0);this.profileAccents?.scale.setScalar(female?1.06:1);if(this.profileAccents)this.profileAccents.visible=false;if(this.identity)this.identity.visible=false;
   }
@@ -284,6 +286,7 @@ class Component extends DCLogic {
   getCtx() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); if (this.ctx.state === 'suspended') this.ctx.resume(); return this.ctx; }
   cancelScene() { this.sceneToken=(this.sceneToken||0)+1;try{this.effectSource?.stop();}catch{}this.setState({sceneActive:false});this.pausedPlayback=null;this.idleEvent=null;this.nextInterruption=Infinity; }
   stopAudio() {
+    this.streamFinish?.(false);for(const src of this.streamSources||[]){try{src.stop();}catch{}}
     try { this.src?.stop(); } catch (e) {}
     this.playback=null;this.src = null; this.analyser = null; this.speaking = false; this.setState({speaking:false});
     window.speechSynthesis?.cancel();
@@ -348,10 +351,10 @@ class Component extends DCLogic {
     const src=ctx.createBufferSource(),filter=ctx.createBiquadFilter();src.buffer=buf;filter.type='bandpass';filter.frequency.setValueAtTime(1700,ctx.currentTime);filter.frequency.exponentialRampToValueAtTime(180,ctx.currentTime+.8);src.connect(filter);filter.connect(ctx.destination);this.effectSource=src;src.onended=()=>{src.disconnect();filter.disconnect();if(this.effectSource===src)this.effectSource=null;};src.start();
   }
   async sceneComet() {
-    if(this.state.sceneActive||this.busy||this.state.thinking||this.state.listening||this.state.preparing||!this.state.idleEnabled||this.reducedMotion)return;
+    if(this.streamDownloading||this.state.sceneActive||this.busy||this.state.thinking||this.state.listening||this.state.preparing||!this.state.idleEnabled||this.reducedMotion)return;
     const token=this.sceneToken=(this.sceneToken||0)+1,original=this.state.bubble;
     const playing=this.playback;
-    if(playing){this.pausedPlayback={...playing,offset:Math.min(playing.buf.duration,playing.offset+Math.max(0,this.getCtx().currentTime-playing.started))};}
+    if(playing){this.pausedPlayback={...playing,offset:Math.min(playing.buf.duration,playing.segments?playing.segments.reduce((sum,s)=>sum+Math.min(s.duration,Math.max(0,this.getCtx().currentTime-s.start)),0):playing.offset+Math.max(0,this.getCtx().currentTime-playing.started))};}
     else if(this.speaking)return; // أصوات الجهاز لا تقدم موضعًا مضمونًا للاستكمال.
     this.stopAudio();this.setState({sceneActive:true});this.idleEvent={name:'comet',start:performance.now(),duration:2400,dir:this.idleStep%2?1:-1};
     if(this.state.cometSound)try{this.whoosh();}catch{}
@@ -388,6 +391,28 @@ class Component extends DCLogic {
     } catch {this.setState({cacheNotice:this.cancelPreparation?'توقف التجهيز. الأصوات المكتملة محفوظة.':'توقف التجهيز بسبب حد الخدمة أو خطأ اتصال أو تعذّر الحفظ. الأصوات المكتملة محفوظة؛ يمكنك المحاولة لاحقًا.'});}
     finally {this.setState({preparing:false});}
   }
+  async streamSpeech(text,id,options={}) {
+    if(options.force||!window.ReadableStream)return null;
+    const config=this.voiceConfig(),spoken=window.QUMAIR_SPEECH.text(text,config.profile),ck='elevenlabs:'+this.voiceFingerprint(config)+':'+spoken;
+    if(this.cache.has(ck)||await this.savedClip(ck))return null;
+    if(!this.elevenKey||!config.voiceId)return null;
+    if(!/^[a-zA-Z0-9_-]{8,80}$/.test(config.voiceId))throw Error('INVALID_VOICE');
+    if(id!==this.speakId||this.dead)return false;
+    const ctx=this.getCtx();await ctx.resume();
+    const controller=new AbortController();this.voiceController=controller;
+    const timer=setTimeout(()=>controller.abort(),45000),sources=new Set(),parts=[],segments=[];let carry=null,next=0,firstStart=0,last=null,downloaded=false,total=0,finish;
+    const ended=new Promise(resolve=>{finish=resolve});this.streamSources=sources;this.streamFinish=finish;this.streamDownloading=true;
+    const an=ctx.createAnalyser();an.fftSize=512;an.connect(ctx.destination);
+    const schedule=samples=>{if(!samples.length)return;const buf=ctx.createBuffer(1,samples.length,24000);buf.copyToChannel(samples,0);const src=ctx.createBufferSource();src.buffer=buf;src.connect(an);const start=Math.max(ctx.currentTime+.12,next);if(!firstStart)firstStart=start;next=start+buf.duration;segments.push({start,duration:buf.duration});last=src;sources.add(src);src.onended=()=>{sources.delete(src);src.disconnect();if(downloaded&&src===last)finish(id===this.speakId&&!this.dead);};src.start(start);this.analyser=an;this.speaking=true;this.setState({speaking:true,thinking:false,generatingAudio:false});};
+    try{
+      const r=await fetch('https://api.elevenlabs.io/v1/text-to-speech/'+config.voiceId+'/stream?output_format=pcm_24000',{method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','xi-api-key':this.elevenKey},body:JSON.stringify({text:spoken,model_id:config.model,apply_text_normalization:'on',seed:27182,voice_settings:{stability:config.stability,similarity_boost:config.similarity_boost,style:config.style,use_speaker_boost:config.use_speaker_boost,speed:config.speed}})});
+      if(!r.ok){const e=Error('STREAM');e.status=r.status;throw e;}if(!r.body)throw Error('NO_STREAM');const reader=r.body.getReader();
+      while(true){const chunk=await reader.read();if(id!==this.speakId||this.dead){controller.abort();return false;}if(chunk.done)break;let bytes=chunk.value;if(carry!==null){const joined=new Uint8Array(bytes.length+1);joined[0]=carry;joined.set(bytes,1);bytes=joined;carry=null;}if(bytes.length%2){carry=bytes[bytes.length-1];bytes=bytes.subarray(0,bytes.length-1);}const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),samples=new Float32Array(bytes.length/2);for(let i=0;i<samples.length;i++)samples[i]=view.getInt16(i*2,true)/32768;parts.push(samples);total+=samples.length;schedule(samples);}
+      downloaded=true;this.streamDownloading=false;if(!total)throw Error('EMPTY_AUDIO');
+      const full=ctx.createBuffer(1,total,24000),all=new Float32Array(total);let offset=0;for(const part of parts){all.set(part,offset);offset+=part.length;}full.copyToChannel(all,0);this.audioIdentities.set(full,config);this.cache.set(ck,full);this.playback={buf:full,id,offset:0,started:firstStart,config,segments};this.nextInterruption=performance.now()+18000;
+      this.saveClip(ck,full).catch(()=>this.setState({cacheNotice:'تعذّر حفظ المقطع، لكنه متاح في هذه الجلسة.'}));if(!sources.size)finish(id===this.speakId&&!this.dead);return await ended;
+    }finally{clearTimeout(timer);for(const src of sources){try{src.stop();}catch{}src.disconnect();}an.disconnect();if(this.streamFinish===finish){this.streamSources=null;this.streamFinish=null;this.streamDownloading=false;this.playback=null;this.analyser=null;this.speaking=false;this.setState({speaking:false,generatingAudio:false});}}
+  }
   async ttsBuffer(text,options={}) {
     const config=options.config||this.voiceConfig(),prov=this.prov(),ctx=this.getCtx(),id=config.voiceId;
     const spoken=window.QUMAIR_SPEECH.text(text,config.profile),fingerprint=this.voiceFingerprint(config),ck=prov+':'+fingerprint+':'+spoken;
@@ -419,6 +444,7 @@ class Component extends DCLogic {
     if(prov==='elevenlabs') {
       try {
         this.setState({thinking:true,generatingAudio:true});
+        const streamed=await this.streamSpeech(text,id,options);if(streamed!==null)return streamed;
         const buf=await this.ttsBuffer(text,options); if(id!==this.speakId||this.dead) return;
         return await this.playBuffer(buf,id);
       } catch(e) {
@@ -517,6 +543,7 @@ class Component extends DCLogic {
   }
 }
 </script></body></html>
+
 
 
 
