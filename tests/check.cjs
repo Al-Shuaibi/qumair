@@ -5,7 +5,7 @@ const source=html.match(/<script type="text\/x-dc" data-dc-script>([\s\S]*?)<\/s
 const context={window:{},React:{createRef:()=>({current:null})},DCLogic:class{setState(p){this.state={...this.state,...(typeof p==='function'?p(this.state):p)}}},console,AbortController,setTimeout,clearTimeout,clearInterval,performance,localStorage:{getItem:()=>null,setItem:()=>{}},document:{getElementById:()=>null}};
 vm.createContext(context);vm.runInContext(fs.readFileSync('questions.js','utf8'),context);vm.runInContext(source+'\nglobalThis.TestComponent=Component;',context);
 (async()=>{
- const c=new context.TestComponent();assert.equal(c.questions().length,65);
+ const c=new context.TestComponent();assert.equal(c.questions().length,110);
  for(const q of c.questions()){assert.equal(c.local(q.q).a,q.a);assert.equal(c.local(q.q).sure,true)}
  assert.equal(c.local('من فاز في مباراة كرة القدم؟').sure,false);
  let calls=0;c.gemini=async()=>{calls++;return{text:'{"scope":"other"}'}};
@@ -40,9 +40,20 @@ vm.createContext(context);vm.runInContext(fs.readFileSync('questions.js','utf8')
  motion.state.listening=true;const stopped=motion.idlePose(19001);assert.equal(stopped.comet,null);assert.equal(stopped.x,0);assert.equal(stopped.ry,0);assert.equal(motion.idleEvent,null);
  motion.state.listening=false;motion.reducedMotion=true;assert.equal(motion.idlePose(90000).comet,null);
  assert.ok(!source.includes('root.add(ring)'));assert.ok(template.includes('voice-primary'));assert.ok(template.includes('showChat'));
+ // المذنب يستأنف نفس المقطع من موضع التوقف، والإيقاف يلغي الاستئناف المتأخر.
+ const scene=new context.TestComponent();scene.getCtx=()=>({currentTime:12});scene.whoosh=()=>{};
+ scene.playback={buf:{duration:40},id:4,offset:3,started:7};scene.speakId=4;scene.speaking=true;
+ scene.recordedBuffer=async()=>({duration:1});let scenePlays=[];scene.playBuffer=async(buf,id,offset=0)=>scenePlays.push({buf,id,offset});
+ let endFlight;const realTimeout=context.setTimeout;context.setTimeout=(fn,ms)=>ms===2400?(endFlight=fn,0):realTimeout(fn,ms);
+ const scenePending=scene.sceneComet();assert.equal(scene.state.sceneActive,true);assert.equal(scene.pausedPlayback.offset,8);endFlight();await scenePending;
+ assert.equal(scenePlays.length,3);assert.equal(scenePlays[2].offset,8);assert.equal(scenePlays[2].id,4);assert.equal(scene.state.sceneActive,false);
+ const cancelledScene=new context.TestComponent();cancelledScene.whoosh=()=>{};cancelledScene.recordedBuffer=async()=>{throw Error('Cancelled scene must not load speech')};
+ const interrupted=cancelledScene.sceneComet();cancelledScene.renderVals().onStop();endFlight();await interrupted;assert.equal(cancelledScene.state.sceneActive,false);
+ context.setTimeout=realTimeout;
+ console.log('PASS: comet pauses PCM at exact elapsed offset, plays remarks and resumes; Stop cancels pending scene.');
  const crypto=require('node:crypto');const support=fs.readFileSync('support.js','utf8');
  for(const [file,name] of [['react.js','REACT_SRI'],['react-dom.js','REACT_DOM_SRI'],['babel.js','BABEL_SRI']]){const expected=support.match(new RegExp('var '+name+' = "([^"]+)"'))[1];assert.equal('sha384-'+crypto.createHash('sha384').update(fs.readFileSync('vendor/'+file)).digest('base64'),expected);}
- console.log('PASS: 65 question answers, scope refusal, sourced research, unverified fallback, saved audio without key, UI bindings and no Claude dependency.');
+ console.log('PASS: 110 question answers, scope refusal, sourced research, unverified fallback, saved audio without key, UI bindings and no Claude dependency.');
  console.log('PASS: comet dodge, idle pause during listening, reduced motion, ring removal, voice-first layout, local dependency integrity.');
  console.log('PASS: selected ElevenLabs voice, separate student voices and recordings, cancellation of late answers, Google is research-only.');
  console.log('PASS: ElevenLabs request uses chosen voice for new answers, Arabic language, and cached audio plays without a key. Live services are not tested.');
