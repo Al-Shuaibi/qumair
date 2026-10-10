@@ -13,3 +13,6 @@
 @media(max-width:600px){.voice-dock{bottom:17px;gap:10px}.voice-primary{min-width:265px;padding:11px 18px;gap:13px}.voice-primary strong{font-size:15px}.voice-primary small{font-size:9px}.dock-actions{gap:12px}.dock-caption{font-size:9px}.answer{max-height:24dvh}}
 @media(max-height:650px) and (min-width:601px){.voice-dock{bottom:12px;gap:8px}.voice-primary{padding:8px 17px;min-width:260px}.voice-primary strong{font-size:14px}.mic-orb{width:37px;height:37px}.dock-caption{display:none}}
 @media(prefers-reduced-motion:reduce){.voice-primary.listening .voice-bars i{animation:none}}
+
+/* University presentation */
+.profile-select{max-width:140px;color:#e5eaf0}.topbar{flex-wrap:wrap}.experience{background:radial-gradient(ellipse at 50% 55%,#243643 0%,#111c29 59%,#080e16 100%)}.brand-icon{color:#a8c5d4}.voice-primary{border-radius:16px}.actions{flex-wrap:wrap}.voice-notice{font-size:13px;line-height:1.8;color:#ffe2a2}.settings-buttons{flex-wrap:wrap}@media(max-width:600px){.brand span:not(.brand-icon){display:none}.topbar{padding:15px 12px;gap:7px}.brand strong{font-size:20px}.profile-select{max-width:115px}.actions .pill{padding:7px 9px}.answer{top:108px}}

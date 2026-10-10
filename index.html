@@ -6,7 +6,7 @@
   <div class="stage" ref="{{ mountRef }}" aria-label="مجسم قُمَير ثلاثي الأبعاد"></div>
   <header class="topbar">
     <div class="brand"><span class="brand-icon">✦</span><div><strong>قُمَير</strong><span>رحلتك إلى عالم الفضاء</span></div></div>
-    <div class="actions"><button class="pill" onClick="{{ onToggleQuestions }}">الأسئلة <span class="count">{{ totalQuestions }}</span></button><button class="pill" onClick="{{ onToggleKey }}">الصوت</button><button class="pill fullscreen" onClick="{{ onFullscreen }}">ملء الشاشة</button></div>
+    <div class="actions"><select class="pill profile-select" aria-label="نسخة الشخصية والصوت" value="{{ voiceProfile }}" onChange="{{ onVoiceProfile }}"><option value="students">قسم الطلاب</option><option value="female">قسم الطالبات</option></select><button class="pill" onClick="{{ onToggleQuestions }}">الأسئلة <span class="count">{{ totalQuestions }}</span></button><button class="pill" onClick="{{ onToggleKey }}">الصوت</button><button class="pill fullscreen" onClick="{{ onFullscreen }}">ملء الشاشة</button></div>
   </header>
   <section class="answer" aria-live="polite"><span class="eyebrow">{{ statusText }}</span><p>{{ bubbleText }}</p><div class="sources"><sc-for list="{{ sources }}" as="source"><a href="{{ source.url }}" target="_blank" rel="noopener noreferrer">{{ source.title }} ↗</a></sc-for></div><div id="google-search-attribution"></div><span class="voice-notice">{{ voiceNotice }}</span></section>
   <footer class="voice-dock">
@@ -19,7 +19,7 @@
     <span class="dock-caption">نادي الحاسب · اسأل بصوتك واكتشف الفضاء</span>
   </footer>
   <sc-if value="{{ showQuestions }}"><div class="scrim" onClick="{{ onClosePanels }}"></div><aside class="panel" role="dialog" aria-modal="true" aria-label="بنك الأسئلة"><div class="panel-head"><div><span class="eyebrow">اكتشف موضوعًا جديدًا</span><h2>أسئلة الفضاء</h2></div><button class="close" onClick="{{ onClosePanels }}" aria-label="إغلاق">×</button></div><input class="field" aria-label="ابحث في الأسئلة" placeholder="ابحث عن كوكب، رائد فضاء، قمر صناعي…" value="{{ search }}" onChange="{{ onSearch }}"></input><div class="categories"><sc-for list="{{ categories }}" as="c"><button class="category {{ c.active }}" onClick="{{ c.onSelect }}">{{ c.name }}</button></sc-for></div><div class="list"><sc-for list="{{ suggestions }}" as="s"><button class="question" onClick="{{ s.onAsk }}"><span>{{ s.category }}</span><strong>{{ s.q }}</strong><b>↖</b></button></sc-for><sc-if value="{{ noResults }}"><p class="empty">لا توجد أسئلة مطابقة. جرّب كلمة أخرى.</p></sc-if></div><button class="add-button" onClick="{{ onToggleAdd }}">＋ إضافة سؤال وإجابة</button><sc-if value="{{ showAdd }}"><div class="add-form"><input class="field" aria-label="السؤال الجديد" placeholder="السؤال" value="{{ newQuestion }}" onChange="{{ onNewQuestion }}"></input><textarea class="field" aria-label="إجابة السؤال الجديد" placeholder="الإجابة" value="{{ newAnswer }}" onChange="{{ onNewAnswer }}"></textarea><button class="send" onClick="{{ onAdd }}">حفظ السؤال</button><p class="hint">{{ addNotice }}</p></div></sc-if></aside></sc-if>
-  <sc-if value="{{ showKey }}"><div class="scrim" onClick="{{ onClosePanels }}"></div><aside class="panel settings" role="dialog" aria-modal="true" aria-label="إعدادات الصوت"><div class="panel-head"><div><span class="eyebrow">صوت واضح ومريح</span><h2>صوت قُمَير</h2></div><button class="close" onClick="{{ onClosePanels }}" aria-label="إغلاق">×</button></div><label>طريقة التحدث<select class="field" value="{{ provider }}" onChange="{{ onProvider }}"><option value="recorded">مقاطع محفوظة · بدون توليد جديد</option><option value="elevenlabs">صوت طبيعي · ElevenLabs</option><option value="browser">أصوات الجهاز</option><option value="silent">بدون صوت</option></select></label><div><label>مفتاح Google AI Studio للبحث وكتابة الإجابة<input class="field" dir="ltr" type="password" autocomplete="off" placeholder="أدخل المفتاح هنا" value="{{ keyDraft }}" onChange="{{ onKeyDraft }}"></input></label><p class="hint">يبقى المفتاح في ذاكرة هذه الصفحة فقط، ويُمسح عند إعادة تحميلها.</p><button class="send" onClick="{{ onSaveKey }}">تفعيل البحث</button><p class="hint">Google يتحقق من المعلومات فقط. ينطق ElevenLabs الإجابة بصوت قُمَير المختار نفسه.</p></div><sc-if value="{{ isEleven }}"><label>مفتاح ElevenLabs<input class="field" dir="ltr" type="password" autocomplete="off" value="{{ elevenKeyDraft }}" onChange="{{ onElevenKey }}" placeholder="مفتاح ElevenLabs"></input></label><label>صوت العرض<select class="field" value="{{ voiceProfile }}" onChange="{{ onVoiceProfile }}"><option value="students">قسم الطلاب</option><option value="female">قسم الطالبات</option></select></label><label>معرّف الصوت لهذا القسم Voice ID<input class="field" dir="ltr" value="{{ elevenVoice }}" onChange="{{ onElevenVoice }}" placeholder="معرّف الصوت من مكتبة ElevenLabs"></input></label><button class="send" onClick="{{ onSaveEleven }}">تفعيل ElevenLabs</button><p class="hint">يُستخدم Flash v2.5. يبقى المفتاح في ذاكرة هذه الصفحة فقط.</p></sc-if><sc-if value="{{ isBrowser }}"><label>الصوت العربي المتاح<select class="field" value="{{ browserVoice }}" onChange="{{ onBrowserVoice }}"><option value="">أفضل صوت متاح تلقائيًا</option><sc-for list="{{ browserVoices }}" as="v"><option value="{{ v.id }}">{{ v.name }}</option></sc-for></select></label><p class="hint">جودة أصوات الجهاز تختلف بحسب المتصفح والأصوات المثبتة.</p></sc-if><label>سرعة الكلام <span>{{ speedLabel }}</span><input class="slider" aria-label="سرعة الكلام" type="range" min="0.75" max="1.15" step="0.05" value="{{ speed }}" onChange="{{ onSpeed }}"></input></label><label class="motion-toggle"><input type="checkbox" checked="{{ idleEnabled }}" onChange="{{ onIdleEnabled }}"></input><span>حركات الشخصية أثناء انتظار الأسئلة</span></label><div class="settings-buttons"><button class="send" onClick="{{ onTestVoice }}">جرّب الصوت</button><button class="pill" onClick="{{ onClearKey }}">مسح المفاتيح</button></div><p class="hint" role="status">{{ keyStatus }}</p><div class="cache-box"><label>استيراد المقاطع الصوتية<input class="field" type="file" accept="audio/*" multiple onChange="{{ onImportAudio }}"></input></label><p class="hint">سمِّ المقاطع q001.mp3 إلى q065.mp3 حسب ملف نصوص التسجيل. تُحفظ على هذا الجهاز. المقاطع المستوردة تُشغّل بسرعتها الأصلية؛ جهّزها بإلقاء هادئ.</p><p class="hint" role="status">{{ importNotice }}</p></div><div class="cache-box"><strong>جهّز الصوت قبل الفعالية</strong><p class="hint">تُحفظ كل إجابة صوتية تلقائيًا على هذا الجهاز. تغيير الصوت أو السرعة يتطلب تجهيزًا جديدًا. البحث عن الأسئلة الجديدة يحتاج اتصالًا ومفتاحًا.</p><sc-if value="{{ canPrepare }}"><button class="send" onClick="{{ onPrepare }}">تجهيز أصوات كل الأسئلة</button></sc-if><sc-if value="{{ preparing }}"><p class="hint">اكتمل {{ preparedCount }} من {{ totalQuestions }}</p><button class="pill" onClick="{{ onCancelPrepare }}">إيقاف التجهيز</button></sc-if><p class="hint" role="status">{{ cacheNotice }}</p></div></aside></sc-if>
+  <sc-if value="{{ showKey }}"><div class="scrim" onClick="{{ onClosePanels }}"></div><aside class="panel settings" role="dialog" aria-modal="true" aria-label="إعدادات الصوت"><div class="panel-head"><div><span class="eyebrow">صوت واضح ومريح</span><h2>صوت قُمَير</h2></div><button class="close" onClick="{{ onClosePanels }}" aria-label="إغلاق">×</button></div><label>طريقة التحدث<select class="field" value="{{ provider }}" onChange="{{ onProvider }}"><option value="recorded">مقاطع محفوظة · بدون توليد جديد</option><option value="elevenlabs">صوت طبيعي · ElevenLabs</option><option value="browser">أصوات الجهاز</option><option value="silent">بدون صوت</option></select></label><div><label>مفتاح Google AI Studio للبحث وكتابة الإجابة<input class="field" dir="ltr" type="password" autocomplete="off" placeholder="أدخل المفتاح هنا" value="{{ keyDraft }}" onChange="{{ onKeyDraft }}"></input></label><p class="hint">يبقى المفتاح في ذاكرة هذه الصفحة فقط، ويُمسح عند إعادة تحميلها.</p><button class="send" onClick="{{ onSaveKey }}">تفعيل البحث</button><p class="hint">Google يتحقق من المعلومات فقط. ينطق ElevenLabs الإجابة بصوت قُمَير المختار نفسه.</p></div><sc-if value="{{ isEleven }}"><label>مفتاح ElevenLabs<input class="field" dir="ltr" type="password" autocomplete="off" value="{{ elevenKeyDraft }}" onChange="{{ onElevenKey }}" placeholder="مفتاح ElevenLabs"></input></label><label>الشخصية والصوت<select class="field" value="{{ voiceProfile }}" onChange="{{ onVoiceProfile }}"><option value="students">قسم الطلاب</option><option value="female">قسم الطالبات</option></select></label><label>معرّف الصوت لهذا القسم Voice ID<input class="field" dir="ltr" value="{{ elevenVoice }}" onChange="{{ onElevenVoice }}" placeholder="معرّف الصوت من مكتبة ElevenLabs"></input></label><button class="send" onClick="{{ onSaveEleven }}">تفعيل ElevenLabs</button><p class="hint">يُستخدم Flash v2.5. يبقى المفتاح في ذاكرة هذه الصفحة فقط.</p></sc-if><sc-if value="{{ isBrowser }}"><label>الصوت العربي المتاح<select class="field" value="{{ browserVoice }}" onChange="{{ onBrowserVoice }}"><option value="">أفضل صوت متاح تلقائيًا</option><sc-for list="{{ browserVoices }}" as="v"><option value="{{ v.id }}">{{ v.name }}</option></sc-for></select></label><p class="hint">جودة أصوات الجهاز تختلف بحسب المتصفح والأصوات المثبتة.</p></sc-if><label>سرعة الكلام <span>{{ speedLabel }}</span><input class="slider" aria-label="سرعة الكلام" type="range" min="0.75" max="1.15" step="0.05" value="{{ speed }}" onChange="{{ onSpeed }}"></input></label><label class="motion-toggle"><input type="checkbox" checked="{{ idleEnabled }}" onChange="{{ onIdleEnabled }}"></input><span>حركات الشخصية أثناء انتظار الأسئلة</span></label><label class="motion-toggle"><input type="checkbox" checked="{{ interruptEnabled }}" onChange="{{ onInterruptEnabled }}"></input><span>مشهد المذنب أثناء الإجابة مع استكمال الصوت</span></label><div class="settings-buttons"><button class="pill" onClick="{{ onDemoComet }}">جرّب مشهد المذنب</button></div><div class="settings-buttons"><button class="send" onClick="{{ onTestVoice }}">جرّب الصوت</button><button class="pill" onClick="{{ onClearKey }}">مسح المفاتيح</button></div><p class="hint" role="status">{{ keyStatus }}</p><div class="cache-box"><label>استيراد المقاطع الصوتية<input class="field" type="file" accept="audio/*" multiple onChange="{{ onImportAudio }}"></input></label><p class="hint">سمِّ المقاطع q001.mp3 إلى q110.mp3 حسب ملف نصوص التسجيل. تُحفظ على هذا الجهاز. المقاطع المستوردة تُشغّل بسرعتها الأصلية؛ جهّزها بإلقاء هادئ.</p><p class="hint" role="status">{{ importNotice }}</p></div><div class="cache-box"><strong>جهّز الصوت قبل الفعالية</strong><p class="hint">تُحفظ كل إجابة صوتية تلقائيًا على هذا الجهاز. تغيير الصوت أو السرعة يتطلب تجهيزًا جديدًا. البحث عن الأسئلة الجديدة يحتاج اتصالًا ومفتاحًا.</p><sc-if value="{{ canPrepare }}"><button class="send" onClick="{{ onPrepare }}">تجهيز أصوات كل الأسئلة</button></sc-if><sc-if value="{{ preparing }}"><p class="hint">اكتمل {{ preparedCount }} من {{ preparationTotal }}</p><button class="pill" onClick="{{ onCancelPrepare }}">إيقاف التجهيز</button></sc-if><p class="hint" role="status">{{ cacheNotice }}</p></div></aside></sc-if>
 </main>
 </x-dc><script type="text/x-dc" data-dc-script>
 const QA = window.QUMAIR_QUESTIONS;
@@ -43,7 +43,7 @@ const backOut = p => 1 + 2.7 * Math.pow(p - 1, 3) + 1.7 * Math.pow(p - 1, 2);
 const BASE = () => ({ eLo: 1, eLh: 0, eLs: 0, eLx: 0, eLy: 0, eRo: 1, eRh: 0, eRs: 0, eRx: 0, eRy: 0, size: 1, brow: 0, browA: 0, browY: 0, smile: 1, smileS: 1, talk: 0, o: 0, frown: 0, tongue: 0, cheek: .7, tilt: 0, lookX: 0, glow: 0 });
 
 class Component extends DCLogic {
-  state = { bubble: GREET, history: [], input: '', listening: false, thinking: false, speaking: false, showKey: false, keyDraft: '', provider: 'elevenlabs', naturalVoice: 'Achird', browserVoice: '', speed: 0.85, voiceNotice: '', showQuestions: false, search: '', category: 'الكل', showAdd: false, newQuestion: '', newAnswer: '', addNotice: '', customQuestions: [], sources: [], preparing: false, preparedCount: 0, cacheNotice: '', elevenKeyDraft: '', elevenVoice: 'qSfjem6kskBSKupE4hr0', voiceProfile: 'students', studentVoice: 'qSfjem6kskBSKupE4hr0', femaleVoice: 'FZeLZd39ejvLgzR2gY0t', importNotice: '', showChat: false, idleEnabled: true };
+  state = { bubble: GREET, history: [], input: '', listening: false, thinking: false, speaking: false, showKey: false, keyDraft: '', provider: 'elevenlabs', naturalVoice: 'Achird', browserVoice: '', speed: 0.85, voiceNotice: '', showQuestions: false, search: '', category: 'الكل', showAdd: false, newQuestion: '', newAnswer: '', addNotice: '', customQuestions: [], sources: [], preparing: false, preparedCount: 0, cacheNotice: '', elevenKeyDraft: '', elevenVoice: 'qSfjem6kskBSKupE4hr0', voiceProfile: 'students', studentVoice: 'qSfjem6kskBSKupE4hr0', femaleVoice: 'FZeLZd39ejvLgzR2gY0t', importNotice: '', showChat: false, idleEnabled: true, interruptEnabled: true, sceneActive: false };
   answerId = 0; idleSince = 0; idleEvent = null; idleStep = 0; nextIdle = 0;
   apiKey = ''; elevenKey = '';
   gKey() { return this.apiKey; }
@@ -66,11 +66,11 @@ class Component extends DCLogic {
     try { this.T = await import(THREE_URL); this.build(); } catch (e) { console.error(e); this.setState({voiceNotice:'تعذّر تحميل المجسم. أعد فتح المشروع بالطريقة الموضّحة في تعليمات التشغيل وتحقق من دعم المتصفح للعرض ثلاثي الأبعاد.'}); }
   }
   componentWillUnmount() {
-    this.dead = true; ++this.answerId;this.cancelPreparation=true; this.db?.close(); ++this.speakId; this.answerController?.abort(); this.voiceController?.abort(); this.recognition?.abort();
+    this.dead = true; ++this.answerId;this.cancelScene();this.cancelPreparation=true; this.db?.close(); ++this.speakId; this.answerController?.abort(); this.voiceController?.abort(); this.recognition?.abort();
     cancelAnimationFrame(this.raf); this.ro?.disconnect();
     window.removeEventListener('keydown',this.onEscape);
     window.speechSynthesis?.removeEventListener('voiceschanged',this.onVoices);
-    clearInterval(this.typer); this.stopAudio(); this.renderer?.dispose(); this.ctx?.close();
+    clearInterval(this.typer); this.stopAudio(); this.renderer?.dispose();this.terrain?.dispose(); this.ctx?.close();
   }
   softTex(inner, outer) {
     const cv = document.createElement('canvas'); cv.width = cv.height = 128; const g = cv.getContext('2d');
@@ -85,15 +85,20 @@ class Component extends DCLogic {
     el.appendChild(renderer.domElement); renderer.domElement.style.display = 'block';
     this.renderer = renderer; this.ray = new T.Raycaster();
     const scene = new T.Scene(), cam = new T.PerspectiveCamera(32, 1, 0.1, 100);
-    cam.position.set(0, 0.2, 7.2); this.scene = scene; this.cam = cam;
+    cam.position.set(0, 0.2, 8.2); this.scene = scene; this.cam = cam;
     scene.add(new T.HemisphereLight(0xf3f0ff, 0x2a2354, 1.5));
     const key = new T.DirectionalLight(0xffffff, 2.3); key.position.set(-3, 4, 5); scene.add(key);
-    const rim = new T.DirectionalLight(0xff7a5c, 1.8); rim.position.set(4, -1, -4); scene.add(rim);
-    const rim2 = new T.DirectionalLight(0x9d8cff, 1.4); rim2.position.set(-4, 1, -3); scene.add(rim2);
+    const rim = new T.DirectionalLight(0xb2d4ed, 1.3); rim.position.set(4, -1, -4); scene.add(rim);
+    const rim2 = new T.DirectionalLight(0x88abc7, 1.1); rim2.position.set(-4, 1, -3); scene.add(rim2);
     const M = (c, r, extra = {}) => new T.MeshStandardMaterial({ color: c, roughness: r, ...extra });
-    const mBody = new T.MeshPhysicalMaterial({ color: 0xeeeaf2, roughness: 0.65, clearcoat: 0.2, clearcoatRoughness: 0.5, sheen: 0.35, sheenColor: new T.Color(0xd9ccff), sheenRoughness: 0.5 });
+    const cv=document.createElement('canvas');cv.width=cv.height=512;const g=cv.getContext('2d');g.fillStyle='#a8abb0';g.fillRect(0,0,512,512);
+    let seed=19;const rand=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};
+    for(let i=0;i<8500;i++){const v=140+Math.floor(rand()*65);g.fillStyle=`rgb(${v},${v},${v})`;g.fillRect(rand()*512,rand()*512,1.8,1.8);}
+    for(let i=0;i<110;i++){const x=rand()*512,y=rand()*512,r=3+rand()*23;const gr=g.createRadialGradient(x-r*.15,y-r*.15,r*.2,x,y,r);gr.addColorStop(0,'#747981');gr.addColorStop(.7,'#9298a0');gr.addColorStop(.9,'#c4c7cd');gr.addColorStop(1,'#a8abb0');g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fill();}
+    const terrain=new T.CanvasTexture(cv);this.terrain=terrain;
+    const mBody = new T.MeshPhysicalMaterial({ color: 0xdde5e8, roughness: .83, metalness:.06, map:terrain, bumpMap:terrain, bumpScale:.065, clearcoat:.12 });this.bodyMaterial=mBody;
     const mInk = M(0x2a2354, 0.18, { metalness: 0.1 }), mWhite = new T.MeshBasicMaterial({ color: 0xffffff });
-    const mSmile = M(0xf5b82e, 0.4), mTongue = M(0xff7a6b, 0.55), mInkSoft = M(0x2a2354, 0.4);
+    const mSmile = M(0x263c4c, 0.4), mTongue = M(0xff7a6b, 0.55), mInkSoft = M(0x2a2354, 0.4);
     const mRing = M(0xb67b50, 0.4, { metalness: 0.65 }), mDisc = M(0xbb875f, 0.55, { transparent: true, opacity: 0.14, side: T.DoubleSide });
     const mStar = M(0xd6ad54, 0.42, { metalness: 0.4, emissive: 0xd6ad54, emissiveIntensity: 0.12 });
     this.mCheek = new T.MeshBasicMaterial({ map: this.softTex('rgba(255,140,130,1)', 'rgba(255,140,130,0)'), transparent: true, depthWrite: false });
@@ -107,9 +112,9 @@ class Component extends DCLogic {
     this.eyes = [-0.32, 0.32].map((x, i) => {
       const g = onSurf(new T.Group(), x, 0.12, 0.965);
       const pupil = new T.Group(); g.add(pupil);
-      const ball = new T.Mesh(new T.SphereGeometry(1, 32, 24), mInk); ball.scale.set(0.13, 0.16, 0.075); pupil.add(ball);
-      const h1 = new T.Mesh(new T.SphereGeometry(0.044, 16, 12), mWhite); h1.position.set(-0.05, 0.07, 0.072); pupil.add(h1);
-      const h2 = new T.Mesh(new T.SphereGeometry(0.02, 12, 10), mWhite); h2.position.set(0.055, -0.06, 0.07); pupil.add(h2);
+      const ball = new T.Mesh(new T.SphereGeometry(1, 32, 24), mInk); ball.scale.set(0.10, 0.105, 0.052); pupil.add(ball);
+      const h1 = new T.Mesh(new T.SphereGeometry(0.022, 16, 12), mWhite); h1.position.set(-0.05, 0.07, 0.072); pupil.add(h1);
+      const h2 = new T.Mesh(new T.SphereGeometry(0.02, 12, 10), mWhite); h2.position.set(0.055, -0.06, 0.07); h2.visible=false; pupil.add(h2);
       const happy = new T.Mesh(new T.TorusGeometry(0.11, 0.028, 12, 32, Math.PI), mInk); happy.position.set(0, -0.03, 0.03); g.add(happy);
       const sq = new T.Group(); sq.position.z = 0.03; g.add(sq);
       const a = capsule(0.11, 0.026, mInk); a.rotation.z = -0.45; a.position.y = 0.03; sq.add(a);
@@ -117,8 +122,8 @@ class Component extends DCLogic {
       const bw = onSurf(new T.Group(), x, 0.37, 0.995); const bwIn = new T.Group(); bw.add(bwIn); bwIn.add(capsule(0.12, 0.024, mInkSoft));
       return { pupil, happy, sq, bw, bwIn };
     });
-    this.cheeks = [-0.62, 0.62].map(x => { const c = onSurf(new T.Mesh(new T.PlaneGeometry(0.34, 0.24), this.mCheek), x, -0.1, 1.006); return c; });
-    const mouthG = onSurf(new T.Group(), 0, -0.27, 0.97);
+    this.cheeks = [-0.62, 0.62].map(x => { const c = onSurf(new T.Mesh(new T.PlaneGeometry(0.34, 0.24), this.mCheek), x, -0.1, 1.006); c.visible=false; return c; });
+    const mouthG = onSurf(new T.Group(), 0, -0.27, 1.015);
     const smile = new T.Group(); mouthG.add(smile);
     const arc = new T.Mesh(new T.TorusGeometry(0.13, 0.024, 12, 40, Math.PI), mSmile); arc.rotation.z = Math.PI; arc.position.y = 0.08; smile.add(arc);
     const frown = new T.Group(); mouthG.add(frown);
@@ -131,18 +136,22 @@ class Component extends DCLogic {
     this.m = { smile, frown, talk, o: oM, tongue };
     const sh = new T.Shape(); for (let i = 0; i < 10; i++) { const r = i % 2 ? 0.075 : 0.17, a = Math.PI / 2 + i * Math.PI / 5; i ? sh.lineTo(Math.cos(a) * r, Math.sin(a) * r) : sh.moveTo(Math.cos(a) * r, Math.sin(a) * r); }
     const star = new T.Mesh(new T.ExtrudeGeometry(sh, { depth: 0.05, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02, bevelSegments: 3 }), mStar);
-    const starG = onSurf(new T.Group(), 0.5, 0.74, 1.0); starG.add(star); star.rotation.z = -0.3; this.star = star;
+    const starG = onSurf(new T.Group(), 0.5, 0.74, 1.0); starG.add(star);starG.visible=false; star.rotation.z = -0.3; this.star = star;
+    this.identity=new T.Group();head.add(this.identity);
+    const badge=new T.Mesh(new T.CircleGeometry(.075,6),M(0x8bbad3,.35,{metalness:.65}));onSurf(this.identity,.57,-.39,1.012);this.identity.add(badge);this.badgeMaterial=badge.material;
+    this.profileAccents=new T.Group();head.add(this.profileAccents);for(const side of [-1,1]){const stripe=new T.Mesh(new T.TorusGeometry(.77,.008,8,64,.7),badge.material);stripe.rotation.z=side>0?-.35:Math.PI-.35;stripe.position.z=.64;this.profileAccents.add(stripe);}this.applyProfile();
     // مذنب قصير يظهر فقط ضمن مشهد الانتظار، ويختفي عند بدء سؤال.
     const comet = new T.Group(); comet.visible=false; scene.add(comet); this.comet=comet;
-    const cometCore = new T.Mesh(new T.SphereGeometry(.075,20,16),new T.MeshBasicMaterial({color:0xffe3a2}));comet.add(cometCore);
-    const cometGlow=new T.Sprite(new T.SpriteMaterial({map:this.softTex('rgba(255,213,139,.95)','rgba(255,213,139,0)'),transparent:true,depthWrite:false}));cometGlow.scale.set(.6,.6,1);comet.add(cometGlow);
+    const cometCore = new T.Mesh(new T.SphereGeometry(.13,20,16),new T.MeshBasicMaterial({color:0xffe3a2}));comet.add(cometCore);
+    const cometGlow=new T.Sprite(new T.SpriteMaterial({map:this.softTex('rgba(255,213,139,.95)','rgba(255,213,139,0)'),transparent:true,depthWrite:false}));cometGlow.scale.set(1,1,1);comet.add(cometGlow);
     this.cometTrail=[];
-    for(let i=1;i<=10;i++){const tail=new T.Mesh(new T.SphereGeometry(.065,12,8),new T.MeshBasicMaterial({color:i<5?0xf6d395:0xa89ae9,transparent:true,opacity:(1-i/12)*.7,depthWrite:false}));tail.position.set(-i*.12,0,0);tail.scale.setScalar(1-i*.06);comet.add(tail);this.cometTrail.push(tail);}
+    for(let i=1;i<=16;i++){const tail=new T.Mesh(new T.SphereGeometry(.065,12,8),new T.MeshBasicMaterial({color:i<5?0xf6d395:0xa89ae9,transparent:true,opacity:(1-i/19)*.8,depthWrite:false}));tail.position.set(-i*.14,0,0);tail.scale.setScalar(1-i*.04);comet.add(tail);tail.visible=false;this.cometTrail.push(tail);}
+    const plume=new T.Sprite(new T.SpriteMaterial({map:this.softTex('rgba(255,206,123,.7)','rgba(255,206,123,0)'),transparent:true,depthWrite:false}));plume.position.x=-.65;plume.scale.set(1.6,.3,1);comet.add(plume);
     const n = 350, pos = new Float32Array(n * 3);
     for (let i = 0; i < n; i++) { const r = 14 + Math.random() * 20, t = Math.random() * Math.PI * 2, p = Math.acos(2 * Math.random() - 1); pos[i * 3] = r * Math.sin(p) * Math.cos(t); pos[i * 3 + 1] = r * Math.sin(p) * Math.sin(t); pos[i * 3 + 2] = -Math.abs(r * Math.cos(p)); }
     const sg = new T.BufferGeometry(); sg.setAttribute('position', new T.BufferAttribute(pos, 3));
     this.stars = new T.Points(sg, new T.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true, opacity: 0.85 })); scene.add(this.stars);
-    const fit = () => { const w = el.clientWidth, h = el.clientHeight; if (!w || !h) return; renderer.setSize(w, h); cam.aspect = w / h; cam.position.z = w / h < 1 ? 6.5 / (w / h) : 7.2; cam.updateProjectionMatrix(); };
+    const fit = () => { const w = el.clientWidth, h = el.clientHeight; if (!w || !h) return; renderer.setSize(w, h); cam.aspect = w / h; cam.position.z = w / h < 1 ? 6.5 / (w / h) : 8.2; cam.updateProjectionMatrix(); };
     this.ro = new ResizeObserver(fit); this.ro.observe(el); fit();
     this.loop = this.loop.bind(this); this.raf = requestAnimationFrame(this.loop);
   }
@@ -165,39 +174,49 @@ class Component extends DCLogic {
     }
     return 0.3 + 0.7 * Math.abs(Math.sin(s * 13) * Math.sin(s * 4.7 + 1));
   }
+  applyProfile() {
+    const female=this.state.voiceProfile==='female';
+    this.bodyMaterial?.color.setHex(female?0xe7e4de:0xdde5e8);
+    this.badgeMaterial?.color.setHex(female?0xd4ae78:0x8bbad3);
+    this.identity?.rotation.set(0,0,female?.35:0);this.profileAccents?.scale.setScalar(female?1.06:1);
+  }
   resetIdle() { this.idleSince=0;this.idleEvent=null;this.nextIdle=0; }
   idlePose(t) {
-    const pose={x:0,y:-.27,z:0,ry:0,tilt:0,leftEye:1,rightEye:1,pupilX:0,pupilY:0,smile:1,comet:null};
-    const active=this.busy||this.speaking||this.state.thinking||this.state.listening||this.state.preparing||this.state.showKey||this.state.showQuestions||this.state.showChat;
-    if(active||!this.state.idleEnabled||this.reducedMotion){this.resetIdle();return pose;}
-    if(!this.idleSince){this.idleSince=t;this.nextIdle=t+16000;}
-    pose.y+=Math.sin((t-this.idleSince)/1300)*.035;
+    const pose={x:0,y:-.27,z:0,ry:0,tilt:0,leftEye:1,rightEye:1,pupilX:0,pupilY:0,smile:1,alarm:false,comet:null};
+    const active=this.busy||(!this.state.sceneActive&&this.speaking)||this.state.thinking||this.state.listening||this.state.preparing||this.state.showKey||this.state.showQuestions||this.state.showChat;
+    if((active&&!this.state.sceneActive)||!this.state.idleEnabled||this.reducedMotion){this.resetIdle();return pose;}
+    if(!this.idleSince){this.idleSince=t;this.nextIdle=t+4500;}
+    pose.y+=Math.sin((t-this.idleSince)/900)*.07;
     // حركات صغيرة فقط بين مشاهد الانتظار، مع مراعاة تفضيل تقليل الحركة.
     const blinkPhase=(t-this.idleSince)%5600;if(blinkPhase<180){const b=blinkPhase/180;pose.leftEye=pose.rightEye=.12+.88*Math.abs(1-b*2);}
-    if(!this.idleEvent && t>=this.nextIdle){
-      const types=['look','wink','spin','comet'],name=types[this.idleStep++%types.length];
-      this.idleEvent={name,start:t,duration:name==='comet'?4200:name==='spin'?4200:2600,dir:this.idleStep%2?1:-1};
+    if(!this.state.sceneActive&&!this.idleEvent && t>=this.nextIdle){
+      const types=['look','orbit','wink','spin','comet','bounce'],name=types[this.idleStep++%types.length];
+      if(name==='comet'&&!this.state.sceneActive){this.sceneComet();return pose;}
+      this.idleEvent={name,start:t,duration:name==='comet'?2400:name==='spin'?2600:1800,dir:this.idleStep%2?1:-1};
     }
     const event=this.idleEvent;if(!event)return pose;
     const p=Math.min(1,(t-event.start)/event.duration),bell=Math.sin(Math.PI*p),smooth=x=>x*x*(3-2*x);
-    if(event.name==='look'){pose.ry=Math.sin(p*Math.PI*2)*.2;pose.tilt=bell*.04;pose.pupilX=Math.sin(p*Math.PI*2)*.03;}
+    if(event.name==='look'){pose.ry=Math.sin(p*Math.PI*2)*.4;pose.tilt=bell*.12;pose.pupilX=Math.sin(p*Math.PI*2)*.035;}
+    if(event.name==='orbit'){pose.x=Math.sin(p*Math.PI*2)*.42;pose.y+=bell*.25;pose.tilt=-Math.sin(p*Math.PI*2)*.16;}
+    if(event.name==='bounce'){pose.y+=Math.abs(Math.sin(p*Math.PI*2))*.35;pose.tilt=Math.sin(p*Math.PI*4)*.1;}
     if(event.name==='wink'){pose.rightEye=1-Math.pow(bell,4)*.93;pose.tilt=-bell*.075;pose.smile=1+bell*.08;}
     if(event.name==='spin'){pose.ry=smooth(p)*Math.PI*2;pose.y+=bell*.06;}
-    if(event.name==='comet'){
+    if(event.name==='comet'){pose.alarm=p<.8;
       const flight=Math.min(1,p/.8),dodge= p<.35?smooth(p/.35):p<.65?1:1-smooth((p-.65)/.35);
-      pose.x=event.dir*dodge*.48;pose.y-=dodge*.32;pose.tilt=-event.dir*dodge*.12;pose.pupilX=-event.dir*.04*dodge;pose.pupilY=.03*dodge;
+      pose.x=event.dir*dodge*.95;pose.y-=dodge*.6;pose.tilt=-event.dir*dodge*.35;pose.pupilX=-event.dir*.04*dodge;pose.pupilY=.03*dodge;
       if(p<.8)pose.comet={x:event.dir*(-3.3+6.6*flight),y:1.2-.8*flight,z:.5,dir:event.dir,opacity:Math.min(1,flight*8,(1-flight)*8)};
     }
-    if(p>=1){this.idleEvent=null;this.nextIdle=t+22000+(this.idleStep%3)*4000;}
+    if(p>=1){this.idleEvent=null;this.nextIdle=t+4500+(this.idleStep%3)*1000;}
     return pose;
   }
   loop(t) {
     if(this.dead)return;this.raf=requestAnimationFrame(this.loop);
+    if(this.speaking&&!this.state.sceneActive&&this.state.interruptEnabled&&!this.state.showKey&&!this.state.showQuestions&&!this.state.showChat&&t>(this.nextInterruption||Infinity))this.sceneComet();
     const pose=this.idlePose(t),m=this.m,talking=this.speaking,mo=talking?this.mouthOpen(t/1000):0;
     this.root.position.set(pose.x,pose.y,0);this.root.rotation.set(0,pose.ry,pose.tilt);this.root.scale.setScalar(1);
     this.head.rotation.set(0,0,0);this.star.rotation.z=-.3;this.stars.rotation.set(0,0,0);
-    this.eyes.forEach((e,i)=>{e.pupil.visible=true;e.pupil.scale.set(1,i?pose.rightEye:pose.leftEye,1);e.pupil.position.set(pose.pupilX,pose.pupilY,0);e.happy.visible=false;e.sq.visible=false;e.bw.visible=false;});
-    m.smile.visible=!talking;m.smile.scale.setScalar(pose.smile);m.frown.visible=false;m.o.visible=false;m.tongue.visible=false;m.talk.visible=talking;m.talk.scale.set(1-mo*.25,.35+mo*1.35,1);
+    this.eyes.forEach((e,i)=>{e.pupil.visible=true;e.pupil.scale.set(this.state.voiceProfile==='female'?1.12:1,(i?pose.rightEye:pose.leftEye)*(this.state.voiceProfile==='female'?.86:1)*(pose.alarm?1.25:1),1);e.pupil.position.set(pose.pupilX,pose.pupilY,0);e.happy.visible=false;e.sq.visible=false;e.bw.visible=true;e.bwIn.rotation.z=(i?-1:1)*(pose.alarm?.3:this.state.voiceProfile==='female'?.045:.12);});
+    m.smile.visible=!talking&&!pose.alarm;m.smile.scale.setScalar(pose.smile);m.frown.visible=false;m.o.visible=pose.alarm&&!talking;m.tongue.visible=false;m.talk.visible=talking;m.talk.scale.set(1-mo*.25,.35+mo*1.35,1);
     this.comet.visible=!!pose.comet;
     if(pose.comet){const c=pose.comet;this.comet.position.set(c.x,c.y,c.z);this.comet.rotation.z=c.dir===1?-.12:Math.PI+.12;this.comet.children.forEach((part,i)=>{if(part.material.transparent)part.material.opacity=c.opacity*(i<2?1:Math.max(.08,.7-(i-2)*.05));});}
     this.renderer.render(this.scene,this.cam);
@@ -205,7 +224,7 @@ class Component extends DCLogic {
   local(q) {
     const nq=norm(q).toLowerCase();
     if (/^(مرحبا|هلا|السلام عليكم|اهلا)(\s|$)/.test(nq) && nq.split(/\s+/).length<=3) return {a:GREET,sure:true};
-    for(const it of this.questions()) if(norm(it.q).toLowerCase()===nq) return {a:it.a,sure:true};
+    for(const it of this.questions()) if([it.q,...(it.aliases||[])].some(form=>norm(form).toLowerCase()===nq)) return {a:it.a,sure:true,sources:it.sources||[]};
     return {a:FALLBACK,sure:false};
   }
   async gemini(contents, options={}) {
@@ -239,9 +258,10 @@ class Component extends DCLogic {
     return {a:result.text,sources:[...new Map(sources.map(s=>[s.url,s])).values()].slice(0,5),searchEntry:meta.searchEntryPoint?.renderedContent||''};
   }
   getCtx() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); if (this.ctx.state === 'suspended') this.ctx.resume(); return this.ctx; }
+  cancelScene() { this.sceneToken=(this.sceneToken||0)+1;try{this.effectSource?.stop();}catch{}this.setState({sceneActive:false});this.pausedPlayback=null;this.idleEvent=null;this.nextInterruption=Infinity; }
   stopAudio() {
     try { this.src?.stop(); } catch (e) {}
-    this.src = null; this.analyser = null; this.speaking = false; this.setState({speaking:false});
+    this.playback=null;this.src = null; this.analyser = null; this.speaking = false; this.setState({speaking:false});
     window.speechSynthesis?.cancel();
   }
   reveal(text) { clearInterval(this.typer); this.typing=false; this.setState({bubble:text}); }
@@ -286,13 +306,46 @@ class Component extends DCLogic {
     if(!saved)return null;
     const ctx=this.getCtx(),buf=ctx.createBuffer(1,saved.samples.length,saved.rate);buf.copyToChannel(saved.samples,0);return buf;
   }
-  async playBuffer(buf,id) {
+  async playBuffer(buf,id,offset=0) {
     if(id!==this.speakId||this.dead)return;
     const ctx=this.getCtx();await ctx.resume();if(id!==this.speakId||this.dead)return;
-    const source=ctx.createBufferSource(),an=ctx.createAnalyser();an.fftSize=512;
-    source.buffer=buf;source.connect(an);an.connect(ctx.destination);
-    source.onended=()=>{if(this.src===source){this.speaking=false;this.analyser=null;this.setState({speaking:false});}};
-    this.src=source;this.analyser=an;this.speaking=true;this.setState({speaking:true,thinking:false});source.start();
+    if(offset>=buf.duration)return;
+    return await new Promise(resolve=>{
+      const source=ctx.createBufferSource(),an=ctx.createAnalyser();an.fftSize=512;
+      source.buffer=buf;source.connect(an);an.connect(ctx.destination);
+      source.onended=()=>{source.disconnect();an.disconnect();if(this.src===source){this.src=null;this.playback=null;this.speaking=false;this.analyser=null;this.setState({speaking:false});}resolve();};
+      this.src=source;this.playback={buf,id,offset,started:ctx.currentTime};this.analyser=an;this.speaking=true;
+      this.nextInterruption=performance.now()+18000;this.setState({speaking:true,thinking:false});source.start(0,offset);
+    });
+  }
+  whoosh() {
+    const ctx=this.getCtx(),length=Math.floor(ctx.sampleRate*.8),buf=ctx.createBuffer(1,length,ctx.sampleRate),data=buf.getChannelData(0);
+    for(let i=0;i<length;i++)data[i]=(Math.random()*2-1)*Math.sin(Math.PI*i/length)*.12;
+    const src=ctx.createBufferSource(),filter=ctx.createBiquadFilter();src.buffer=buf;filter.type='bandpass';filter.frequency.setValueAtTime(1700,ctx.currentTime);filter.frequency.exponentialRampToValueAtTime(180,ctx.currentTime+.8);src.connect(filter);filter.connect(ctx.destination);this.effectSource=src;src.onended=()=>{src.disconnect();filter.disconnect();if(this.effectSource===src)this.effectSource=null;};src.start();
+  }
+  async sceneComet() {
+    if(this.state.sceneActive||this.busy||this.state.listening||this.state.preparing||!this.state.idleEnabled||this.reducedMotion)return;
+    const token=this.sceneToken=(this.sceneToken||0)+1,original=this.state.bubble;
+    const playing=this.playback;
+    if(playing){this.pausedPlayback={...playing,offset:Math.min(playing.buf.duration,playing.offset+Math.max(0,this.getCtx().currentTime-playing.started))};}
+    else if(this.speaking)return; // أصوات الجهاز لا تقدم موضعًا مضمونًا للاستكمال.
+    this.stopAudio();this.setState({sceneActive:true});this.idleEvent={name:'comet',start:performance.now(),duration:2400,dir:this.idleStep%2?1:-1};
+    try{this.whoosh();}catch{}
+    await new Promise(resolve=>setTimeout(resolve,2400));
+    if(this.dead||token!==this.sceneToken)return;
+    const paused=this.pausedPlayback;
+    try {
+      const remark='أوه! كان المذنب بيصطدم فيني! الحمد لله، عدّت على خير.';
+      this.reveal(remark);let clip=await this.recordedBuffer(remark);
+      if(!clip&&this.prov()==='elevenlabs'&&this.elevenKey)clip=await this.ttsBuffer(remark);
+      if(this.dead||token!==this.sceneToken)return;
+      if(clip)await this.playBuffer(clip,this.speakId);else await new Promise(resolve=>setTimeout(resolve,2500));
+      if(this.dead||token!==this.sceneToken)return;
+      if(paused){const back='أوه، وين وقفنا؟ أعتذر عن المقاطعة، نكمل الإجابة.';this.reveal(back);let cue=await this.recordedBuffer(back);if(!cue&&this.prov()==='elevenlabs'&&this.elevenKey)cue=await this.ttsBuffer(back);if(this.dead||token!==this.sceneToken)return;if(cue)await this.playBuffer(cue,this.speakId);}
+    }catch{this.setState({voiceNotice:'تعذّر تشغيل تعليق المذنب؛ أكمل الإجابة.'});}
+    if(this.dead||token!==this.sceneToken)return;
+    this.setState({sceneActive:false});this.pausedPlayback=null;this.resetIdle();this.reveal(original);
+    if(paused&&paused.id===this.speakId)await this.playBuffer(paused.buf,paused.id,paused.offset);
   }
   async prepareVoices() {
     if(this.state.preparing||this.busy)return;
@@ -300,7 +353,7 @@ class Component extends DCLogic {
     ++this.speakId;this.stopAudio();this.setState({preparing:true,preparedCount:0,cacheNotice:'جاري حفظ أصوات الأسئلة على هذا الجهاز…'});
     this.cancelPreparation=false; let count=0;
     try {
-      for(const q of this.questions()) {
+      for(const q of [...this.questions(),{a:'أوه! كان المذنب بيصطدم فيني! الحمد لله، عدّت على خير.'},{a:'أوه، وين وقفنا؟ أعتذر عن المقاطعة، نكمل الإجابة.'}]) {
         if(this.cancelPreparation||this.dead)break;
         await this.ttsBuffer(q.a);count++;this.setState({preparedCount:count});
         // توليد متتابع، مع مهلة بين الطلبات لتخفيف الضغط على الخدمة.
@@ -338,7 +391,7 @@ class Component extends DCLogic {
     return vs.sort((a,b)=>score(b)-score(a))[0];
   }
   async say(text) {
-    this.resetIdle();const id=++this.speakId; this.stopAudio(); this.voiceController?.abort(); this.reveal(text);
+    this.cancelScene();this.resetIdle();const id=++this.speakId; this.stopAudio(); this.voiceController?.abort(); this.reveal(text);
     this.setState({voiceNotice:''});
     const prov=this.prov(); if(prov==='silent') return;
     try{const saved=await this.recordedBuffer(text);if(saved)return await this.playBuffer(saved,id);}catch{}
@@ -363,9 +416,9 @@ class Component extends DCLogic {
   }
   async ask(q) {
     q=(q||'').trim(); if(!q||this.busy) return; if(this.state.preparing){this.setState({voiceNotice:'أوقف تجهيز الأصوات قبل طرح سؤال.'});return;}
-    const requestId=++this.answerId;this.resetIdle();this.recognition?.stop();++this.speakId;this.stopAudio();this.voiceController?.abort();this.busy=true;
+    const requestId=++this.answerId;this.cancelScene();this.resetIdle();this.recognition?.stop();++this.speakId;this.stopAudio();this.voiceController?.abort();this.busy=true;
     this.setState({input:'',showQuestions:false,listening:false,sources:[],voiceNotice:'',thinking:true});this.updateSearchEntry('');
-    let {a,sure}=this.local(q), sources=[];
+    let {a,sure,sources=[]}=this.local(q);
     try {
       if(!sure){
         this.reveal('أتحقق من سؤالك…');
@@ -388,7 +441,7 @@ class Component extends DCLogic {
     if(this.state.listening){this.recognition?.stop();return;}
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
     if(!SR){this.setState({showChat:true,voiceNotice:'السؤال بالصوت غير متاح في هذا المتصفح. جرّب Edge أو Chrome، أو اكتب سؤالك هنا.'});return;}
-    this.resetIdle();++this.speakId;this.voiceController?.abort();this.stopAudio();this.getCtx();
+    this.cancelScene();this.resetIdle();++this.speakId;this.voiceController?.abort();this.stopAudio();this.getCtx();
     const r=new SR();this.recognition=r;r.lang='ar-SA';r.interimResults=false;
     r.onresult=e=>{const q=e.results[0]?.[0]?.transcript;if(q)this.ask(q);};
     r.onend=()=>this.setState({listening:false});
@@ -400,8 +453,9 @@ class Component extends DCLogic {
     const s=this.state, all=this.questions();
     const found=all.filter(q=>(s.category==='الكل'||q.category===s.category)&&(!s.search||norm(q.q+' '+q.a).includes(norm(s.search))));
     return {
-      showChat:s.showChat,chatLabel:s.showChat?'إخفاء الكتابة':'أفضّل الكتابة',onToggleChat:()=>this.setState({showChat:!s.showChat}),listening:s.listening,listeningClass:s.listening?'listening':'',micHint:s.listening?'اضغط لإنهاء الاستماع':'اضغط الميكروفون وتفضّل بسؤالك',idleEnabled:s.idleEnabled,onIdleEnabled:e=>{this.resetIdle();this.setState({idleEnabled:e.target.checked});},
-      preparing:s.preparing,preparedCount:s.preparedCount,cacheNotice:s.cacheNotice,onPrepare:()=>this.prepareVoices(),onCancelPrepare:()=>{this.cancelPreparation=true;this.voiceController?.abort();},
+      interruptEnabled:s.interruptEnabled,onInterruptEnabled:e=>this.setState({interruptEnabled:e.target.checked}),onDemoComet:()=>{if(this.reducedMotion){this.setState({voiceNotice:'تفضيل تقليل الحركة في الجهاز مفعّل؛ مشهد المذنب متوقف.'});return;}this.getCtx();this.setState({showKey:false,idleEnabled:true});this.sceneComet();},
+      showChat:s.showChat,chatLabel:s.showChat?'إخفاء الكتابة':'أفضّل الكتابة',onToggleChat:()=>this.setState({showChat:!s.showChat}),listening:s.listening,listeningClass:s.listening?'listening':'',micHint:s.listening?'اضغط لإنهاء الاستماع':'اضغط الميكروفون وتفضّل بسؤالك',idleEnabled:s.idleEnabled,onIdleEnabled:e=>{if(!e.target.checked){this.cancelScene();++this.speakId;this.voiceController?.abort();this.stopAudio();}this.resetIdle();this.setState({idleEnabled:e.target.checked});},
+      preparationTotal:all.length+2,preparing:s.preparing,preparedCount:s.preparedCount,cacheNotice:s.cacheNotice,onPrepare:()=>this.prepareVoices(),onCancelPrepare:()=>{this.cancelPreparation=true;this.voiceController?.abort();},
       mountRef:this.mountRef, bubbleText:s.bubble, voiceNotice:s.voiceNotice,
       statusText:s.listening?'أستمع لسؤالك':s.thinking?'أجهّز الرد':s.speaking?'قُمَير يتحدث':'عالم واسع… يبدأ بسؤال',
       totalQuestions:all.length, showQuestions:s.showQuestions,showKey:s.showKey,
@@ -421,15 +475,15 @@ class Component extends DCLogic {
         try{localStorage.setItem('qumair-custom-questions',JSON.stringify(next));this.setState({customQuestions:next,newQuestion:'',newAnswer:'',addNotice:'تم الحفظ على هذا الجهاز.',category:'أسئلتي',search:''});}catch{this.setState({addNotice:'تعذّر الحفظ على هذا الجهاز.'});}
       },
       provider:s.provider,isGemini:s.provider==='gemini',isEleven:s.provider==='elevenlabs',canPrepare:s.provider==='gemini'||s.provider==='elevenlabs',isBrowser:s.provider==='browser',
-      onProvider:e=>{if(s.preparing||this.busy)return;++this.speakId;this.voiceController?.abort();this.stopAudio();this.setState({provider:e.target.value,thinking:false});},
+      onProvider:e=>{if(s.preparing||this.busy)return;this.cancelScene();++this.speakId;this.voiceController?.abort();this.stopAudio();this.setState({provider:e.target.value,thinking:false});},
       importNotice:s.importNotice,onImportAudio:e=>this.importAudio(e),
       elevenKeyDraft:s.elevenKeyDraft,elevenVoice:s.elevenVoice,voiceProfile:s.voiceProfile,
-      onVoiceProfile:e=>{if(s.preparing||this.busy)return;++this.speakId;this.voiceController?.abort();this.stopAudio();const profile=e.target.value;this.setState({voiceProfile:profile,elevenVoice:profile==='female'?s.femaleVoice:s.studentVoice,voiceNotice:profile==='female'&&!s.femaleVoice?'أضف معرّف الصوت النسائي الذي اخترته.':''});},
+      onVoiceProfile:e=>{if(s.preparing||this.busy)return;this.cancelScene();++this.speakId;this.voiceController?.abort();this.stopAudio();const profile=e.target.value;this.setState({voiceProfile:profile,elevenVoice:profile==='female'?s.femaleVoice:s.studentVoice,voiceNotice:profile==='female'&&!s.femaleVoice?'أضف معرّف الصوت النسائي الذي اخترته.':''});this.applyProfile();},
       onElevenKey:e=>this.setState({elevenKeyDraft:e.target.value}),onElevenVoice:e=>{if(!s.preparing){const voice=e.target.value.trim();this.setState({elevenVoice:voice,[s.voiceProfile==='female'?'femaleVoice':'studentVoice']:voice});}},
       onSaveEleven:()=>{this.elevenKey=s.elevenKeyDraft.trim()||this.elevenKey;this.cache.clear();this.setState({elevenKeyDraft:'',provider:this.elevenKey&&s.elevenVoice?'elevenlabs':s.provider,voiceNotice:this.elevenKey&&s.elevenVoice?'تم إدخال بيانات ElevenLabs. اضغط جرّب الصوت للتحقق من الربط.':'أدخل المفتاح ومعرّف الصوت أولًا.'});},
       keyDraft:s.keyDraft,onKeyDraft:e=>this.setState({keyDraft:e.target.value}),
       onSaveKey:()=>{this.apiKey=s.keyDraft.trim();this.cache.clear();this.setState({keyDraft:'',voiceNotice:this.apiKey?'تم إدخال مفتاح البحث. جرّب سؤالًا جديدًا للتحقق من الاتصال.':'أدخل المفتاح أولًا.'});},
-      onClearKey:()=>{++this.answerId;this.busy=false;this.cancelPreparation=true;this.apiKey='';this.elevenKey='';++this.speakId;this.voiceController?.abort();this.answerController?.abort();this.stopAudio();this.cache.clear();this.setState({keyDraft:'',elevenKeyDraft:'',thinking:false,voiceNotice:'تم مسح المفاتيح.'});},
+      onClearKey:()=>{this.cancelScene();++this.answerId;this.busy=false;this.cancelPreparation=true;this.apiKey='';this.elevenKey='';++this.speakId;this.voiceController?.abort();this.answerController?.abort();this.stopAudio();this.cache.clear();this.setState({keyDraft:'',elevenKeyDraft:'',thinking:false,voiceNotice:'تم مسح المفاتيح.'});},
       keyStatus:s.voiceNotice||(this.gKey()?'مفتاح البحث موجود في هذه الجلسة.':'Google للبحث فقط، وElevenLabs للصوت. أدخل مفتاح كل خدمة لتجربتها.'),
       naturalVoice:s.naturalVoice,onNaturalVoice:e=>{if(s.preparing)return;this.cache.clear();this.setState({naturalVoice:e.target.value});},
       browserVoice:s.browserVoice,onBrowserVoice:e=>this.setState({browserVoice:e.target.value}),
@@ -440,7 +494,7 @@ class Component extends DCLogic {
       onKey:e=>{if(e.key==='Enter'){this.getCtx();this.ask(s.input);}},onSend:()=>{this.getCtx();this.ask(s.input);},
       hasMic:!!this.hasMic,onMic:()=>this.mic(),micLabel:s.listening?'أستمع إليك…':'تحدث مع قُمَير',
       onReplay:()=>{if(s.preparing||this.busy)return;this.getCtx();this.say(s.bubble);},
-      onStop:()=>{++this.answerId;this.busy=false;this.answerController?.abort();this.recognition?.abort();this.setState({listening:false});this.cancelPreparation=true;++this.speakId;this.voiceController?.abort();this.stopAudio();this.setState({thinking:false});},
+      onStop:()=>{this.cancelScene();++this.answerId;this.busy=false;this.answerController?.abort();this.recognition?.abort();this.setState({listening:false});this.cancelPreparation=true;++this.speakId;this.voiceController?.abort();this.stopAudio();this.setState({thinking:false});},
       sources:s.sources,
       onFullscreen:()=>{if(document.fullscreenElement)document.exitFullscreen?.();else document.documentElement.requestFullscreen?.().catch(()=>{});}
     };
