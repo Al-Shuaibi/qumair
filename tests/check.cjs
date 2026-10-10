@@ -6,6 +6,13 @@ const context={window:{},React:{createRef:()=>({current:null})},DCLogic:class{se
 vm.createContext(context);vm.runInContext(fs.readFileSync('speech-text.js','utf8'),context);vm.runInContext(fs.readFileSync('questions.js','utf8'),context);vm.runInContext(source+'\nglobalThis.TestComponent=Component;',context);
 (async()=>{
  const c=new context.TestComponent();assert.equal(c.questions().length,110);
+ const diagnosis=new context.TestComponent();diagnosis.elevenKey='test-only';
+ const creditError=await diagnosis.speechServiceError({status:400,json:async()=>({detail:{status:'quota_exceeded',message:'secret-must-not-appear'}})});
+ assert.match(diagnosis.speechErrorNotice(creditError),/رصيد/);assert.match(diagnosis.speechErrorNotice(creditError),/400 \/ quota_exceeded/);assert.ok(!diagnosis.speechErrorNotice(creditError).includes('secret'));
+ assert.match(diagnosis.speechErrorNotice(await diagnosis.speechServiceError({status:402,json:async()=>({detail:{status:'payment_required'}})})),/اشتراكًا/);
+ assert.match(diagnosis.speechErrorNotice({status:403}),/Text to Speech/);assert.match(diagnosis.speechErrorNotice({name:'TypeError'}),/الاتصال/);
+ const malformed=await diagnosis.speechServiceError({status:400,json:async()=>({detail:{status:'<secret>'}})});assert.equal(malformed.serviceCode,undefined);
+ console.log('PASS: voice failures report safe service codes, credit/payment/access and connection errors without raw response messages.');
  for(const q of c.questions()){assert.equal(c.local(q.q).a,q.a);assert.equal(c.local(q.q).sure,true)}
  assert.equal(c.local('من فاز في مباراة كرة القدم؟').sure,false);
  let calls=0;c.gemini=async()=>{calls++;return{text:'{"scope":"other"}'}};
