@@ -419,6 +419,36 @@ class Component extends DCLogic {
     } catch {this.setState({cacheNotice:this.cancelPreparation?'توقف التجهيز. الأصوات المكتملة محفوظة.':'توقف التجهيز بسبب حد الخدمة أو خطأ اتصال أو تعذّر الحفظ. الأصوات المكتملة محفوظة؛ يمكنك المحاولة لاحقًا.'});}
     finally {this.setState({preparing:false});}
   }
+  async speechServiceError(response) {
+    const err=Error('SPEECH_SERVICE');err.status=response.status;
+    try{const data=await response.json();const code=data?.detail?.status||data?.error?.code||data?.detail?.code;
+      if(typeof code==='string'&&/^[a-z0-9_]{1,80}$/.test(code))err.serviceCode=code;
+    }catch{}
+    return err;
+  }
+  speechErrorNotice(e) {
+    if(!this.state.elevenVoice)return 'أضف معرّف صوت هذا القسم من الإعدادات.';
+    if(!this.elevenKey)return 'أدخل مفتاح ElevenLabs في الإعدادات واضغط «تفعيل ElevenLabs».';
+    const code=e.serviceCode||'',suffix=e.status?' · رمز '+e.status+(code?' / '+code:''):'';
+    let notice;
+    if(['insufficient_credits','quota_exceeded'].includes(code))notice='رصيد ElevenLabs غير كافٍ لهذا المقطع. راجع الرصيد وحد الاستهلاك للمفتاح.';
+    else if(['payment_required','subscription_required','paid_plan_required'].includes(code))notice='ElevenLabs يطلب اشتراكًا مدفوعًا لهذه العملية أو لهذا الصوت. راجع باقتك في حساب الخدمة.';
+    else if(e.status===401)notice='مفتاح ElevenLabs غير صالح أو انتهت صلاحيته. أعد إدخاله ثم فعّله.';
+    else if(e.status===402)notice='ElevenLabs يطلب رصيدًا أو اشتراكًا لهذه العملية. راجع حالة الباقة ورصيد الحساب.';
+    else if(e.status===404||code==='voice_not_found')notice='الصوت المختار غير متاح. أضفه إلى My Voices في حساب ElevenLabs وتحقق من معرّفه.';
+    else if(e.status===403)notice='ElevenLabs رفض الوصول. تحقق من صلاحية Text to Speech للمفتاح ومن إتاحة الصوت والنموذج لحسابك.';
+    else if(e.status===429)notice='بلغت حد الطلبات المتزامنة في ElevenLabs. أوقف التوليد على الأجهزة الأخرى وانتظر قليلًا.';
+    else if(e.status===400||e.status===422)notice='ElevenLabs رفض إعدادات طلب الصوت. أرسل رمز الخطأ الظاهر هنا لمراجعته.';
+    else if(e.status>=500)notice='خدمة ElevenLabs تواجه عطلًا مؤقتًا. حاول لاحقًا.';
+    else if(e.name==='AbortError')notice='انتهت مهلة توليد الصوت بعد 45 ثانية. تحقق من الاتصال ثم أعد المحاولة.';
+    else if(e.name==='NotAllowedError')notice='المتصفح منع تشغيل الصوت. اضغط «إعادة الصوت» للسماح بالتشغيل بعد النقر.';
+    else if(e.name==='EncodingError')notice='وصل مقطع تعذّر فكّه كصوت. جرّب عينة جديدة من إعدادات الصوت.';
+    else if(e.message==='INVALID_VOICE')notice='صيغة معرّف الصوت غير صحيحة. أدخل Voice ID وحده دون الرابط.';
+    else if(e.message==='NO_STREAM'||e.message==='EMPTY_AUDIO')notice='لم يصل صوت قابل للتشغيل. جرّب «اختبار النطق والصوت · عينة جديدة» من الإعدادات.';
+    else if(e.name==='TypeError')notice='تعذّر الاتصال بـElevenLabs أو استقبال الصوت. تحقق من الإنترنت، وجرّب العينة الجديدة من الإعدادات؛ لا تغيّر الصوت المختار.';
+    else notice='تعذّر تشغيل الصوت لسبب غير محدد. جرّب العينة الجديدة من الإعدادات وأبلغنا بالرسالة التي تظهر.';
+    return notice+suffix;
+  }
   async streamSpeech(text,id,options={}) {
     if(options.force||!window.ReadableStream)return null;
     const config=this.voiceConfig(),spoken=window.QUMAIR_SPEECH.text(text,config.profile),ck='elevenlabs:'+this.voiceFingerprint(config)+':'+spoken;
@@ -434,7 +464,7 @@ class Component extends DCLogic {
     const schedule=samples=>{if(!samples.length)return;const buf=ctx.createBuffer(1,samples.length,24000);buf.copyToChannel(samples,0);const src=ctx.createBufferSource();src.buffer=buf;src.connect(an);const start=Math.max(ctx.currentTime+.12,next);if(!firstStart)firstStart=start;next=start+buf.duration;segments.push({start,duration:buf.duration});last=src;sources.add(src);src.onended=()=>{sources.delete(src);src.disconnect();if(downloaded&&src===last)finish(id===this.speakId&&!this.dead);};src.start(start);this.analyser=an;this.speaking=true;this.setState({speaking:true,thinking:false,generatingAudio:false});};
     try{
       const r=await fetch('https://api.elevenlabs.io/v1/text-to-speech/'+config.voiceId+'/stream?output_format=pcm_24000',{method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','xi-api-key':this.elevenKey},body:JSON.stringify({text:spoken,model_id:config.model,apply_text_normalization:'on',seed:27182,voice_settings:{stability:config.stability,similarity_boost:config.similarity_boost,style:config.style,use_speaker_boost:config.use_speaker_boost,speed:config.speed}})});
-      if(!r.ok){const e=Error('STREAM');e.status=r.status;throw e;}if(!r.body)throw Error('NO_STREAM');const reader=r.body.getReader();
+      if(!r.ok)throw await this.speechServiceError(r);if(!r.body)throw Error('NO_STREAM');const reader=r.body.getReader();
       while(true){const chunk=await reader.read();if(id!==this.speakId||this.dead){controller.abort();return false;}if(chunk.done)break;let bytes=chunk.value;if(carry!==null){const joined=new Uint8Array(bytes.length+1);joined[0]=carry;joined.set(bytes,1);bytes=joined;carry=null;}if(bytes.length%2){carry=bytes[bytes.length-1];bytes=bytes.subarray(0,bytes.length-1);}const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),samples=new Float32Array(bytes.length/2);for(let i=0;i<samples.length;i++)samples[i]=view.getInt16(i*2,true)/32768;parts.push(samples);total+=samples.length;schedule(samples);}
       downloaded=true;this.streamDownloading=false;if(!total)throw Error('EMPTY_AUDIO');
       const full=ctx.createBuffer(1,total,24000),all=new Float32Array(total);let offset=0;for(const part of parts){all.set(part,offset);offset+=part.length;}full.copyToChannel(all,0);this.audioIdentities.set(full,config);this.cache.set(ck,full);this.playback={buf:full,id,offset:0,started:firstStart,config,segments};this.nextInterruption=performance.now()+18000;
@@ -452,7 +482,7 @@ class Component extends DCLogic {
     this.voiceController?.abort();const controller=new AbortController();this.voiceController=controller;const timeout=setTimeout(()=>controller.abort(),45000);
     try{
       const r=await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${id}?output_format=mp3_44100_128`,{signal:controller.signal,method:'POST',headers:{'Content-Type':'application/json','xi-api-key':this.elevenKey},body:JSON.stringify({text:spoken,model_id:config.model,apply_text_normalization:'on',seed:27182,voice_settings:{stability:config.stability,similarity_boost:config.similarity_boost,style:config.style,use_speaker_boost:config.use_speaker_boost,speed:config.speed}})});
-      if(!r.ok){const err=Error('ElevenLabs '+r.status);err.status=r.status;throw err;}buf=await ctx.decodeAudioData(await r.arrayBuffer());
+      if(!r.ok)throw await this.speechServiceError(r);buf=await ctx.decodeAudioData(await r.arrayBuffer());
     }finally{clearTimeout(timeout);}
     this.audioIdentities.set(buf,config);if(this.cache.size>=150)this.cache.delete(this.cache.keys().next().value);this.cache.set(ck,buf);
     const stored=await this.saveClip(ck,buf);if(!stored&&this.state.preparing)throw Error('CACHE_FAILED');if(!stored)this.setState({cacheNotice:'تعذّر حفظ الصوت بشكل دائم. يبقى متاحًا في هذه الجلسة.'});return buf;
@@ -477,7 +507,7 @@ class Component extends DCLogic {
         return await this.playBuffer(buf,id);
       } catch(e) {
         if(id!==this.speakId||this.dead) return;
-        this.setState({thinking:false,generatingAudio:false,voiceNotice:!this.state.elevenVoice?'أضف معرّف صوت هذا القسم من الإعدادات.':!this.elevenKey?'أدخل مفتاح ElevenLabs في الإعدادات لتشغيل صوت قُمَير.':e.status===401?'مفتاح ElevenLabs غير صالح. تحقق منه في الإعدادات.':e.status===404?'تعذّر العثور على الصوت. أضفه إلى حساب ElevenLabs وتحقق من معرّفه.':e.status===403?'المفتاح أو الباقة لا يسمحان بهذا الصوت أو النموذج. راجع صلاحيات ElevenLabs.':e.status===429?'بلغت الخدمة حد الطلبات أو الرصيد. انتظر قليلًا وتحقق من رصيدك.':'تعذّر تشغيل صوت قُمَير. تحقق من الاتصال وصلاحية المفتاح ورصيد الخدمة.'});
+        this.setState({thinking:false,generatingAudio:false,voiceNotice:this.speechErrorNotice(e)});
       } return;
     }
     this.setState({voiceNotice:'اختر ElevenLabs أو المقاطع المعتمدة؛ أصوات الجهاز متوقفة لمنع اختلاف الصوت.'});return false;
