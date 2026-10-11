@@ -1,6 +1,6 @@
 نصوص تسجيل مئة وعشر إجابات سردية لكل قسم.
 recording-texts لقُمَير، وrecording-texts-female لقُمَيرة.
-معرّف الطلاب: qSfjem6kskBSKupE4hr0
+معرّف الطلاب: yXEnnEln9armDCyhkXcA
 معرّف الطالبات: FZeLZd39ejvLgzR2gY0t
 اعتمد عينة نطق قبل تجهيز المجموعة.
 سمّ المقاطع q001.mp3 إلى q110.mp3. اختر القسم قبل الاستيراد.
