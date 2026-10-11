@@ -375,7 +375,7 @@ class Component extends DCLogic {
           if(run!==this.agentRun||this.dead)return;
           if(msg.source==='user'||msg.role==='user'){userEcho=true;this.lastAgentQuestion=msg.message;this.setState({thinking:true});return;}
           if(msg.source!=='ai'&&msg.role!=='agent'&&msg.role!=='assistant')return;
-          if(textOnly&&!userEcho)return;
+          if(textOnly&&(!userEcho||msg.event_id===0))return;
           const answer=msg.message;if(!answer)return;this.setState({fullAnswer:''});
           this.busy=false;this.setState(v=>({thinking:false,history:[{q:this.lastAgentQuestion||question||'محادثة قُمَير',a:answer},...v.history].slice(0,6)}));
           if(textOnly){this.say(answer);const done=this.agentSession;this.agentSession=null;this.agentRun++;if(done)Promise.resolve(done.endSession()).catch(()=>{});this.setState({agentConnected:false,agentConnecting:false});}else this.reveal(answer);
@@ -666,7 +666,7 @@ class Component extends DCLogic {
       onKey:e=>{if(e.key==='Enter'){this.getCtx();this.ask(s.input);}},onSend:()=>{this.getCtx();this.ask(s.input);},
       hasMic:!!this.hasMic,onMic:()=>this.mic(),micLabel:s.agentConnected?'إنهاء المحادثة':s.agentConnecting?'جاري الاتصال…':s.listening?'أستمع إليك…':'تحدث مع '+this.name(),
       onSpeakFullAnswer:()=>{if(s.preparing)return;this.endAgent();this.cancelSaudiJourney();this.getCtx();this.say(s.fullAnswer||s.bubble);},
-      onReplay:()=>{if(s.preparing||this.busy)return;this.cancelSaudiJourney();this.getCtx();this.say(s.bubble);},
+      onReplay:()=>{if(s.preparing||this.busy)return;this.endAgent();this.cancelSaudiJourney();this.getCtx();this.say(s.bubble);},
       onStop:()=>{this.endAgent();this.cancelSaudiJourney();this.cancelScene();++this.answerId;this.busy=false;this.answerController?.abort();this.recognition?.abort();this.setState({listening:false});this.cancelPreparation=true;++this.speakId;this.voiceController?.abort();this.stopAudio();this.setState({thinking:false,generatingAudio:false});},
       sources:s.sources,
       onFullscreen:()=>{if(document.fullscreenElement)document.exitFullscreen?.();else document.documentElement.requestFullscreen?.().catch(()=>{});}
