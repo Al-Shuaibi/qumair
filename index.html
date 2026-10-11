@@ -367,7 +367,7 @@ class Component extends DCLogic {
     this.endAgent();const run=this.agentRun;
     this.cancelSaudiJourney();this.cancelScene();this.recognition?.abort();++this.speakId;this.voiceController?.abort();this.stopAudio();
     this.setState({journeyStarted:true,agentConnecting:true,thinking:true,voiceNotice:'',showQuestions:false,input:'',sources:[]});
-    let userEcho=false;
+    let userEcho=false,firstAgentResponse=true;
     try {
       const {Conversation}=await this.agentSdk();if(run!==this.agentRun||this.dead)return;
       const session=await Conversation.startSession({agentId,textOnly,connectionType:textOnly?'websocket':'webrtc',
@@ -375,7 +375,7 @@ class Component extends DCLogic {
           if(run!==this.agentRun||this.dead)return;
           if(msg.source==='user'||msg.role==='user'){userEcho=true;this.lastAgentQuestion=msg.message;this.setState({thinking:true});return;}
           if(msg.source!=='ai'&&msg.role!=='agent'&&msg.role!=='assistant')return;
-          if(textOnly&&(!userEcho||msg.event_id===0))return;
+          if(textOnly){const first=firstAgentResponse;firstAgentResponse=false;const normalized=(msg.message||'').normalize('NFKD').replace(/[\u064B-\u065F\u0670\u0640]/g,'');if(!userEcho||(first&&/(?:انا|أنا)\s*(?:قمير|قميرة)/.test(normalized)))return;}
           const answer=msg.message;if(!answer)return;this.setState({fullAnswer:''});
           this.busy=false;this.setState(v=>({thinking:false,history:[{q:this.lastAgentQuestion||question||'محادثة قُمَير',a:answer},...v.history].slice(0,6)}));
           if(textOnly){this.say(answer);const done=this.agentSession;this.agentSession=null;this.agentRun++;if(done)Promise.resolve(done.endSession()).catch(()=>{});this.setState({agentConnected:false,agentConnecting:false});}else this.reveal(answer);
