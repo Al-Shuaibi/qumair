@@ -3,7 +3,7 @@ const html=fs.readFileSync('index.html','utf8');
 const source=html.match(/<script type="text\/x-dc" data-dc-script>([\s\S]*?)<\/script>/)[1];
 
 const context={window:{},React:{createRef:()=>({current:null})},DCLogic:class{setState(p){this.state={...this.state,...(typeof p==='function'?p(this.state):p)}}},console,AbortController,setTimeout,clearTimeout,clearInterval,performance,localStorage:{getItem:()=>null,setItem:()=>{}},document:{getElementById:()=>null}};
-vm.createContext(context);vm.runInContext(fs.readFileSync('speech-text.js','utf8'),context);vm.runInContext(fs.readFileSync('questions.js','utf8'),context);vm.runInContext(source+'\nglobalThis.TestComponent=Component;',context);
+vm.createContext(context);vm.runInContext(fs.readFileSync('speech-text.js','utf8'),context);vm.runInContext(fs.readFileSync('questions.js','utf8'),context);vm.runInContext(fs.readFileSync('saudi-journey.js','utf8'),context);vm.runInContext(source+'\nglobalThis.TestComponent=Component;',context);
 (async()=>{
  const c=new context.TestComponent();assert.equal(c.questions().length,110);
  const journey=new context.TestComponent();let introSpoken,recorderStopped=false;
@@ -14,7 +14,7 @@ vm.createContext(context);vm.runInContext(fs.readFileSync('speech-text.js','utf8
  for(const starter of journey.starters())assert.ok(journey.questions().some(q=>q.id===starter.id));
  let starterAsked;journey.ask=q=>starterAsked=q;journey.starters()[0].onAsk();assert.equal(journey.local(starterAsked).sure,true);
  journey.state.preparing=true;introSpoken=null;journey.startJourney();assert.equal(introSpoken,null);
- assert.equal(journey.renderVals().preparationTotal,113);
+ assert.equal(journey.renderVals().preparationTotal,117);
  console.log('PASS: introduction matches character gender, stops microphone, uses existing speech path, includes university and guards preparation; starters resolve to reviewed answers.');
  const diagnosis=new context.TestComponent();diagnosis.elevenKey='test-only';
  const creditError=await diagnosis.speechServiceError({status:400,json:async()=>({detail:{status:'quota_exceeded',message:'secret-must-not-appear'}})});
@@ -73,26 +73,26 @@ vm.createContext(context);vm.runInContext(fs.readFileSync('speech-text.js','utf8
  motion.state.listening=true;const stopped=motion.idlePose(19001);assert.equal(stopped.comet,null);assert.equal(stopped.x,0);assert.equal(stopped.ry,0);assert.equal(motion.idleEvent,null);
  motion.state.listening=false;motion.reducedMotion=true;assert.equal(motion.idlePose(90000).comet,null);
  assert.ok(!source.includes('root.add(ring)'));assert.ok(template.includes('voice-primary'));assert.ok(template.includes('showChat'));
- // المذنب يستأنف نفس المقطع من موضع التوقف، والإيقاف يلغي الاستئناف المتأخر.
- const scene=new context.TestComponent();scene.getCtx=()=>({currentTime:12});scene.whoosh=()=>{};
- scene.playback={buf:{duration:40},id:4,offset:3,started:7};scene.speakId=4;scene.speaking=true;
- scene.state.provider='recorded';scene.state.cometSpeech=true;scene.recordedBuffer=async()=>({duration:1});let scenePlays=[];scene.playBuffer=async(buf,id,offset=0)=>scenePlays.push({buf,id,offset});
- let endFlight;const realTimeout=context.setTimeout;context.setTimeout=(fn,ms)=>ms===2400?(endFlight=fn,0):realTimeout(fn,ms);
- const scenePending=scene.sceneComet();assert.equal(scene.state.sceneActive,true);assert.equal(scene.pausedPlayback.offset,8);endFlight();await scenePending;
- assert.equal(scenePlays.length,3);assert.equal(scenePlays[2].offset,8);assert.equal(scenePlays[2].id,4);assert.equal(scene.state.sceneActive,false);
- const cancelledScene=new context.TestComponent();cancelledScene.whoosh=()=>{};cancelledScene.recordedBuffer=async()=>{throw Error('Cancelled scene must not load speech')};
- const interrupted=cancelledScene.sceneComet();cancelledScene.renderVals().onStop();endFlight();await interrupted;assert.equal(cancelledScene.state.sceneActive,false);
- context.setTimeout=realTimeout;
- const quiet=new context.TestComponent();quiet.getCtx=()=>({currentTime:5});quiet.state.cometSound=false;quiet.whoosh=()=>{throw Error('Muted effect must not play');};quiet.recordedBuffer=()=>{throw Error('Muted commentary must not load audio');};quiet.ttsBuffer=quiet.recordedBuffer;quiet.playback={buf:{duration:20},id:7,offset:2,started:3};quiet.speakId=7;quiet.speaking=true;
- let resumed;quiet.playBuffer=async(buf,id,offset)=>{resumed={id,offset}};context.setTimeout=(fn,ms)=>ms===2400?(endFlight=fn,0):realTimeout(fn,ms);const quietPending=quiet.sceneComet();endFlight();await quietPending;assert.equal(resumed.id,7);assert.equal(resumed.offset,4);context.setTimeout=realTimeout;
- const consistent=new context.TestComponent();consistent.elevenKey='test-only';consistent.getCtx=()=>({currentTime:5});consistent.state.cometSpeech=true;consistent.whoosh=()=>{};consistent.playback={buf:{duration:20},id:8,offset:0,started:0,config:{voiceId:'originalVoice',profile:'students'}};consistent.speakId=8;consistent.speaking=true;let ids=[];consistent.ttsBuffer=async(text,options)=>{ids.push(options.config.voiceId);return{duration:1}};consistent.playBuffer=async()=>true;context.setTimeout=(fn,ms)=>ms===2400?(endFlight=fn,0):realTimeout(fn,ms);const consistentPending=consistent.sceneComet();consistent.state.elevenVoice='changedVoice';endFlight();await consistentPending;assert.deepEqual(ids,['originalVoice','originalVoice']);context.setTimeout=realTimeout;
- console.log('PASS: muted comet speech/effect and frozen answer voice for both commentary clips.');
+
+ const comet=new context.TestComponent();comet.whoosh=()=>{throw Error('Comet audio is removed')};comet.ttsBuffer=comet.whoosh;
+ comet.speaking=true;await comet.sceneComet();assert.equal(comet.state.sceneActive,false);
+ comet.speaking=false;let endFlight;const realTimeout=context.setTimeout;
+ context.setTimeout=(fn,ms)=>ms===2400?(endFlight=fn,0):realTimeout(fn,ms);
+ const flying=comet.sceneComet();assert.equal(comet.state.sceneActive,true);endFlight();await flying;assert.equal(comet.state.sceneActive,false);
+ context.setTimeout=realTimeout;assert.ok(!source.includes('async whoosh'));assert.ok(!source.includes('this.whoosh()'));
+ for(const item of c.questions()){assert.ok(item.a.split(/\s+/).length>=100,item.id);for(const alias of item.aliases||[])assert.equal(c.local(alias).a,item.a)}
+ const storyteller=new context.TestComponent();storyteller.getCtx=()=>({});let chaptersRead=[];
+ storyteller.say=async text=>{chaptersRead.push(text);return true};await storyteller.startSaudiJourney();assert.equal(chaptersRead.length,6);assert.equal(storyteller.state.saudiJourneyIndex,5);
+ let finishChapter;chaptersRead=[];storyteller.say=text=>{chaptersRead.push(text);return new Promise(resolve=>finishChapter=resolve)};
+ const ongoing=storyteller.startSaudiJourney();storyteller.renderVals().onStop();finishChapter(true);await ongoing;assert.equal(chaptersRead.length,1);assert.equal(storyteller.state.saudiJourneyActive,false);
+ const textual=new context.TestComponent();textual.getCtx=()=>({});let visibleChapters=0;textual.say=async()=>{visibleChapters++};await textual.startSaudiJourney();assert.equal(visibleChapters,1,'No audio must not skip through all chapters');
+ console.log('PASS: all 110 narratives exceed 100 words, old question aliases still match, six chapters advance with completed audio, Stop cancels progression, and comet never requests or interrupts audio.');
  const progressive=new context.TestComponent();progressive.elevenKey='test-only';progressive.speakId=1;progressive.savedClip=async()=>null;progressive.saveClip=async()=>true;let starts=0,reads=0,streamNodes=[];context.window.ReadableStream=function(){};
  progressive.getCtx=()=>({currentTime:1,resume:async()=>{},destination:{},createAnalyser:()=>({connect:()=>{},disconnect:()=>{}}),createBuffer:(channels,length,rate)=>({duration:length/rate,sampleRate:rate,copyToChannel:()=>{}}),createBufferSource:()=>{const node={connect:()=>{},disconnect:()=>{},stop:()=>{},start:()=>{starts++}};streamNodes.push(node);return node;}});
  context.fetch=async(url,opts)=>{assert.match(url,/qSfjem6kskBSKupE4hr0\/stream\?output_format=pcm_24000/);assert.equal(JSON.parse(opts.body).model_id,'eleven_v4');return{ok:true,body:{getReader:()=>({read:async()=>{reads++;if(reads===2)assert.equal(starts,1,'Audio must start before the full response arrives');if(reads<3)return{value:new Uint8Array([0,0,0,64]),done:false};for(const node of streamNodes)node.onended();return{done:true}}})}}};
  assert.equal(await progressive.streamSpeech('المذنب',1),true);assert.equal(starts,2);assert.equal(progressive.speaking,false);delete context.window.ReadableStream;
  console.log('PASS: selected voice streamed as PCM, starts before response completes, caches full audio and cleans up. Live streaming is not tested.');
- console.log('PASS: comet pauses PCM at exact elapsed offset, plays remarks and resumes; Stop cancels pending scene.');
+
  const crypto=require('node:crypto');const support=fs.readFileSync('support.js','utf8');
  for(const [file,name] of [['react.js','REACT_SRI'],['react-dom.js','REACT_DOM_SRI'],['babel.js','BABEL_SRI']]){const expected=support.match(new RegExp('var '+name+' = "([^"]+)"'))[1];assert.equal('sha384-'+crypto.createHash('sha384').update(fs.readFileSync('vendor/'+file)).digest('base64'),expected);}
  console.log('PASS: 110 question answers, scope refusal, sourced research, unverified fallback, saved audio without key, UI bindings and no Claude dependency.');
