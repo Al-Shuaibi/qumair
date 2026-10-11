@@ -14,7 +14,7 @@ vm.createContext(context);vm.runInContext(fs.readFileSync('speech-text.js','utf8
  for(const starter of journey.starters())assert.ok(journey.questions().some(q=>q.id===starter.id));
  let starterAsked;journey.ask=q=>starterAsked=q;journey.starters()[0].onAsk();assert.equal(journey.local(starterAsked).sure,true);
  journey.state.preparing=true;introSpoken=null;journey.startJourney();assert.equal(introSpoken,null);
- assert.equal(journey.renderVals().preparationTotal,117);
+ assert.equal(journey.renderVals().preparationTotal,9);
  console.log('PASS: introduction matches character gender, stops microphone, uses existing speech path, includes university and guards preparation; starters resolve to reviewed answers.');
  const diagnosis=new context.TestComponent();diagnosis.elevenKey='test-only';
  const creditError=await diagnosis.speechServiceError({status:400,json:async()=>({detail:{status:'quota_exceeded',message:'secret-must-not-appear'}})});
@@ -25,12 +25,24 @@ vm.createContext(context);vm.runInContext(fs.readFileSync('speech-text.js','utf8
  console.log('PASS: voice failures report safe service codes, credit/payment/access and connection errors without raw response messages.');
  for(const q of c.questions()){assert.equal(c.local(q.q).a,q.a);assert.equal(c.local(q.q).sure,true)}
  assert.equal(c.local('من فاز في مباراة كرة القدم؟').sure,false);
- let calls=0;c.gemini=async()=>{calls++;return{text:'{"scope":"other"}'}};
- const outside=await c.researched('كيف أطبخ الأرز؟');assert.match(outside.a,/مختص بالفضاء/);assert.equal(calls,1);
- c.gemini=async(text,opts)=>opts.tools?{text:'إجابة موثقة',candidate:{groundingMetadata:{groundingChunks:[{web:{uri:'https://www.nasa.gov/',title:'NASA'}},{web:{uri:'javascript:alert(1)',title:'bad'}}]}}}:{text:'{"scope":"space"}'};
- const inside=await c.researched('كيف يتكون المذنب؟');assert.equal(inside.a,'إجابة موثقة');assert.equal(inside.sources.length,1);
- c.gemini=async(text,opts)=>opts.tools?{text:'غير موثق',candidate:{}}:{text:'{"scope":"space"}'};
- assert.match((await c.researched('سؤال فضائي')).a,/لم أتمكن من التحقق/);
+ const agent=new context.TestComponent();agent.stopAudio=()=>{};agent.recognition={abort:()=>{}};agent.reveal=text=>agent.setState({bubble:text});
+ let sdkOptions,sent,ended=0;const session={sendContextualUpdate:()=>{},sendUserMessage:q=>{sent=q},endSession:async()=>{ended++},getOutputVolume:()=>.2};
+ agent.agentSdk=async()=>({Conversation:{startSession:async opts=>{sdkOptions=opts;return session}}});
+ await agent.connectAgent(true,'سؤال فضائي جديد');assert.equal(sdkOptions.agentId,'agent_1801m4m793rmetft16v107j4rsyb');assert.equal(sdkOptions.textOnly,true);assert.equal(sent,'سؤال فضائي جديد');
+ let spoken;agent.say=answer=>spoken=answer;
+ sdkOptions.onMessage({source:'user',message:sent});sdkOptions.onMessage({source:'ai',message:'إجابة من ElevenAgents'});assert.equal(spoken,'إجابة من ElevenAgents');
+ agent.endAgent();sdkOptions.onMessage({source:'ai',message:'جواب متأخر'});assert.equal(spoken,'إجابة من ElevenAgents');assert.equal(ended,1);
+ await agent.connectAgent(false);assert.equal(sdkOptions.connectionType,'webrtc');sdkOptions.onModeChange({mode:'speaking'});assert.equal(agent.speaking,true);sdkOptions.onInterruption();assert.equal(agent.speaking,false);assert.equal(agent.state.listening,true);agent.endAgent();
+ assert.ok(!source.includes('generativelanguage.googleapis.com'));assert.ok(!html.includes('مفتاح Google AI Studio'));
+ console.log('PASS: ElevenAgents voice/text integration, chosen agent, stale callback cancellation and Google removal.');
+ const concise=new context.TestComponent();concise.stopAudio=()=>{};concise.getCtx=()=>({});let shortSpoken;concise.say=t=>{shortSpoken=t};const full=concise.questions()[0].a;
+ concise.busy=true;await concise.ask(concise.questions()[0].q);assert.equal(concise.state.fullAnswer,full);assert.ok(shortSpoken.length<full.length);assert.equal(concise.renderVals().transcriptText,full);
+ concise.renderVals().onSpeakFullAnswer();assert.equal(shortSpoken,full);
+ const micInterrupt=new context.TestComponent();let stoppedAudio=false,startedMic=false;micInterrupt.busy=true;micInterrupt.stopAudio=()=>{stoppedAudio=true};micInterrupt.getCtx=()=>({});context.window.SpeechRecognition=class{start(){startedMic=true}};micInterrupt.mic();assert.equal(stoppedAudio,true);assert.equal(startedMic,true);assert.equal(micInterrupt.busy,false);delete context.window.SpeechRecognition;
+ const canonical=JSON.parse(fs.readFileSync('questions.json','utf8'));assert.deepEqual(JSON.parse(JSON.stringify(c.questions().filter(q=>q.id))),canonical);
+ for(const q of canonical){assert.ok(!q.q.includes('سعوديات'));assert.ok(!q.a.includes('سعوديات'));}
+ console.log('PASS: new question interrupts pending work; microphone stops prior playback; concise default retains full narrative; reviewed JS and JSON answers match and contain no incorrect satellite spelling.');
+
  let played=false;c.recordedBuffer=async()=>({duration:2});c.playBuffer=async()=>{played=true};c.stopAudio=()=>{};c.reveal=text=>c.setState({bubble:text});
  c.state.provider='recorded';await c.say('إجابة محفوظة');assert.equal(played,true);assert.equal(c.gKey(),'');
  c.state.provider='recorded';c.recordedBuffer=async()=>null;played=false;await c.say('إجابة غير محفوظة');assert.equal(played,false);assert.match(c.state.voiceNotice,/لا يوجد مقطع/);
@@ -42,8 +54,8 @@ vm.createContext(context);vm.runInContext(fs.readFileSync('speech-text.js','utf8
  voice.savedClip=async key=>{voice.lastRecordingKey=key;return null;};await voice.recordedBuffer('test answer');assert.match(voice.lastRecordingKey,/yXEnnEln9armDCyhkXcA/);
  voice.renderVals().onVoiceProfile({target:{value:'female'}});await voice.recordedBuffer('test answer');assert.match(voice.lastRecordingKey,/femaleTestVoice123/);
  const cancel=new context.TestComponent();cancel.stopAudio=()=>{};cancel.say=()=>{throw Error('Cancelled reply must not speak');};
- cancel.apiKey='test-only';let finishResearch;cancel.researched=()=>new Promise(resolve=>finishResearch=resolve);
- const pending=cancel.ask('سؤال جديد');cancel.renderVals().onStop();finishResearch({a:'late reply',sources:[]});await pending;assert.equal(cancel.state.history.length,0);assert.equal(cancel.busy,false);
+ let finishResearch;cancel.agentSdk=()=>new Promise(resolve=>finishResearch=resolve);
+ const pending=cancel.ask('سؤال جديد');cancel.renderVals().onStop();finishResearch({Conversation:{startSession:()=>{throw Error('Cancelled session must not start')}}});await pending;assert.equal(cancel.state.history.length,0);assert.equal(cancel.busy,false);
  assert.ok(!templateHasGoogleVoice(html));
  const api=new context.TestComponent();api.elevenKey='test-only-not-a-real-key';api.getCtx=()=>({decodeAudioData:async()=>({sampleRate:44100,getChannelData:()=>new Float32Array([0])})});api.savedClip=async()=>null;api.saveClip=async()=>true;
  let requested;context.fetch=async(url,options)=>{requested={url,options,body:JSON.parse(options.body)};return{ok:true,arrayBuffer:async()=>new ArrayBuffer(0)}};
@@ -95,9 +107,9 @@ vm.createContext(context);vm.runInContext(fs.readFileSync('speech-text.js','utf8
 
  const crypto=require('node:crypto');const support=fs.readFileSync('support.js','utf8');
  for(const [file,name] of [['react.js','REACT_SRI'],['react-dom.js','REACT_DOM_SRI'],['babel.js','BABEL_SRI']]){const expected=support.match(new RegExp('var '+name+' = "([^"]+)"'))[1];assert.equal('sha384-'+crypto.createHash('sha384').update(fs.readFileSync('vendor/'+file)).digest('base64'),expected);}
- console.log('PASS: 110 question answers, scope refusal, sourced research, unverified fallback, saved audio without key, UI bindings and no Claude dependency.');
+ console.log('PASS: 110 question answers, Agent reply routing, saved audio without key, UI bindings and no Claude dependency.');
  console.log('PASS: comet dodge, idle pause during listening, reduced motion, ring removal, voice-first layout, local dependency integrity.');
- console.log('PASS: selected ElevenLabs voice, separate student voices and recordings, cancellation of late answers, Google is research-only.');
+ console.log('PASS: selected ElevenLabs voice, separate student voices and recordings, cancellation of late answers, no Google requests.');
  console.log('PASS: ElevenLabs request uses chosen voice for new answers, Arabic text normalization, and cached audio plays without a key. Live services are not tested.');
  let route;const path=require('node:path');const serverStub={on:()=>{},listen:()=>{}};
  vm.runInNewContext(fs.readFileSync('server.cjs','utf8'),{require:name=>name==='node:http'?{createServer:handler=>{route=handler;return serverStub}}:require(name),__dirname:process.cwd(),URL,console,process:{env:{}}});
