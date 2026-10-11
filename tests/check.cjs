@@ -30,7 +30,7 @@ vm.createContext(context);vm.runInContext(fs.readFileSync('speech-text.js','utf8
  agent.agentSdk=async()=>({Conversation:{startSession:async opts=>{sdkOptions=opts;return session}}});
  await agent.connectAgent(true,'سؤال فضائي جديد');assert.equal(sdkOptions.agentId,'agent_1801m4m793rmetft16v107j4rsyb');assert.equal(sdkOptions.textOnly,true);assert.equal(sent,'سؤال فضائي جديد');
  let spoken;agent.say=answer=>spoken=answer;
- sdkOptions.onMessage({source:'user',message:sent});sdkOptions.onMessage({source:'ai',message:'إجابة من ElevenAgents'});assert.equal(spoken,'إجابة من ElevenAgents');
+ sdkOptions.onMessage({source:'ai',message:'رسالة ترحيب',event_id:0});assert.equal(spoken,undefined);sdkOptions.onMessage({source:'user',message:sent});sdkOptions.onMessage({source:'ai',message:'إجابة من ElevenAgents'});assert.equal(spoken,'إجابة من ElevenAgents');
  agent.endAgent();sdkOptions.onMessage({source:'ai',message:'جواب متأخر'});assert.equal(spoken,'إجابة من ElevenAgents');assert.equal(ended,1);
  await agent.connectAgent(false);assert.equal(sdkOptions.connectionType,'webrtc');sdkOptions.onModeChange({mode:'speaking'});assert.equal(agent.speaking,true);sdkOptions.onInterruption();assert.equal(agent.speaking,false);assert.equal(agent.state.listening,true);agent.endAgent();
  assert.ok(!source.includes('generativelanguage.googleapis.com'));assert.ok(!html.includes('مفتاح Google AI Studio'));
