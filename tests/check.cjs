@@ -33,7 +33,7 @@ vm.createContext(context);vm.runInContext(fs.readFileSync('speech-text.js','utf8
  sdkOptions.onMessage({source:'ai',message:'يا هلا! أنا قُمَير، رفيقكم في الفضاء.',event_id:4});assert.equal(spoken,undefined);sdkOptions.onMessage({source:'user',message:sent});sdkOptions.onMessage({source:'ai',message:'إجابة من ElevenAgents'});assert.equal(spoken,'إجابة من ElevenAgents');
  agent.endAgent();sdkOptions.onMessage({source:'ai',message:'جواب متأخر'});assert.equal(spoken,'إجابة من ElevenAgents');assert.equal(ended,1);
  await agent.connectAgent(false);assert.equal(sdkOptions.connectionType,'webrtc');sdkOptions.onModeChange({mode:'speaking'});assert.equal(agent.speaking,true);sdkOptions.onInterruption();assert.equal(agent.speaking,false);assert.equal(agent.state.listening,true);agent.endAgent();
- assert.ok(!source.includes('generativelanguage.googleapis.com'));assert.ok(!html.includes('مفتاح Google AI Studio'));
+ agent.state.voiceProfile='female';assert.equal(agent.agentId(),'agent_5701m4mdwvadep1ahx64btrx53g5');await agent.connectAgent(false);assert.equal(sdkOptions.agentId,'agent_5701m4mdwvadep1ahx64btrx53g5');agent.endAgent();await agent.connectAgent(true,'سؤال لقُمَيرة');assert.equal(sdkOptions.agentId,'agent_5701m4mdwvadep1ahx64btrx53g5');agent.endAgent();assert.ok(!source.includes('generativelanguage.googleapis.com'));assert.ok(!html.includes('مفتاح Google AI Studio'));
  console.log('PASS: ElevenAgents voice/text integration, chosen agent, stale callback cancellation and Google removal.');
  const concise=new context.TestComponent();concise.stopAudio=()=>{};concise.getCtx=()=>({});let shortSpoken;concise.say=t=>{shortSpoken=t};const full=concise.questions()[0].a;
  concise.busy=true;await concise.ask(concise.questions()[0].q);assert.equal(concise.state.fullAnswer,full);assert.ok(shortSpoken.length<full.length);assert.equal(concise.renderVals().transcriptText,full);
@@ -47,7 +47,7 @@ vm.createContext(context);vm.runInContext(fs.readFileSync('speech-text.js','utf8
  c.state.provider='recorded';await c.say('إجابة محفوظة');assert.equal(played,true);assert.equal(c.gKey(),'');
  c.state.provider='recorded';c.recordedBuffer=async()=>null;played=false;await c.say('إجابة غير محفوظة');assert.equal(played,false);assert.match(c.state.voiceNotice,/لا يوجد مقطع/);
  const voice=new context.TestComponent();assert.equal(voice.state.provider,'elevenlabs');assert.equal(voice.state.elevenVoice,'yXEnnEln9armDCyhkXcA');
- voice.stopAudio=()=>{};voice.renderVals().onVoiceProfile({target:{value:'female'}});assert.equal(voice.state.elevenVoice,'FZeLZd39ejvLgzR2gY0t');
+ voice.stopAudio=()=>{};voice.renderVals().onVoiceProfile({target:{value:'female'}});assert.equal(voice.state.elevenVoice,'VjxKp6w1MCufETfW5zFM');
  voice.renderVals().onElevenVoice({target:{value:'femaleTestVoice123'}});assert.equal(voice.state.femaleVoice,'femaleTestVoice123');
  voice.renderVals().onVoiceProfile({target:{value:'students'}});assert.equal(voice.state.elevenVoice,'yXEnnEln9armDCyhkXcA');
  voice.renderVals().onElevenVoice({target:{value:''}});voice.renderVals().onSaveEleven();assert.equal(voice.state.elevenVoice,'yXEnnEln9armDCyhkXcA');
