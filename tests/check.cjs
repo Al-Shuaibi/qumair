@@ -6,6 +6,16 @@ const context={window:{},React:{createRef:()=>({current:null})},DCLogic:class{se
 vm.createContext(context);vm.runInContext(fs.readFileSync('speech-text.js','utf8'),context);vm.runInContext(fs.readFileSync('questions.js','utf8'),context);vm.runInContext(source+'\nglobalThis.TestComponent=Component;',context);
 (async()=>{
  const c=new context.TestComponent();assert.equal(c.questions().length,110);
+ const journey=new context.TestComponent();let introSpoken,recorderStopped=false;
+ journey.getCtx=()=>({});journey.recognition={abort:()=>{recorderStopped=true}};journey.say=text=>{introSpoken=text};
+ journey.startJourney();assert.equal(journey.state.journeyStarted,true);assert.equal(recorderStopped,true);
+ assert.match(introSpoken,/أنا قُمَير، رفيقكم/);assert.match(introSpoken,/متحمّس/);assert.match(introSpoken,/الجامعة العربية المفتوحة/);
+ journey.state.voiceProfile='female';journey.state.elevenVoice=journey.state.femaleVoice;journey.startJourney();assert.match(introSpoken,/أنا قُمَيرة، رفيقتكم/);assert.match(introSpoken,/متحمّسة/);
+ for(const starter of journey.starters())assert.ok(journey.questions().some(q=>q.id===starter.id));
+ let starterAsked;journey.ask=q=>starterAsked=q;journey.starters()[0].onAsk();assert.equal(journey.local(starterAsked).sure,true);
+ journey.state.preparing=true;introSpoken=null;journey.startJourney();assert.equal(introSpoken,null);
+ assert.equal(journey.renderVals().preparationTotal,113);
+ console.log('PASS: introduction matches character gender, stops microphone, uses existing speech path, includes university and guards preparation; starters resolve to reviewed answers.');
  const diagnosis=new context.TestComponent();diagnosis.elevenKey='test-only';
  const creditError=await diagnosis.speechServiceError({status:400,json:async()=>({detail:{status:'quota_exceeded',message:'secret-must-not-appear'}})});
  assert.match(diagnosis.speechErrorNotice(creditError),/رصيد/);assert.match(diagnosis.speechErrorNotice(creditError),/400 \/ quota_exceeded/);assert.ok(!diagnosis.speechErrorNotice(creditError).includes('secret'));
