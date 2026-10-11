@@ -34,12 +34,12 @@ vm.createContext(context);vm.runInContext(fs.readFileSync('speech-text.js','utf8
  let played=false;c.recordedBuffer=async()=>({duration:2});c.playBuffer=async()=>{played=true};c.stopAudio=()=>{};c.reveal=text=>c.setState({bubble:text});
  c.state.provider='recorded';await c.say('إجابة محفوظة');assert.equal(played,true);assert.equal(c.gKey(),'');
  c.state.provider='recorded';c.recordedBuffer=async()=>null;played=false;await c.say('إجابة غير محفوظة');assert.equal(played,false);assert.match(c.state.voiceNotice,/لا يوجد مقطع/);
- const voice=new context.TestComponent();assert.equal(voice.state.provider,'elevenlabs');assert.equal(voice.state.elevenVoice,'qSfjem6kskBSKupE4hr0');
+ const voice=new context.TestComponent();assert.equal(voice.state.provider,'elevenlabs');assert.equal(voice.state.elevenVoice,'yXEnnEln9armDCyhkXcA');
  voice.stopAudio=()=>{};voice.renderVals().onVoiceProfile({target:{value:'female'}});assert.equal(voice.state.elevenVoice,'FZeLZd39ejvLgzR2gY0t');
  voice.renderVals().onElevenVoice({target:{value:'femaleTestVoice123'}});assert.equal(voice.state.femaleVoice,'femaleTestVoice123');
- voice.renderVals().onVoiceProfile({target:{value:'students'}});assert.equal(voice.state.elevenVoice,'qSfjem6kskBSKupE4hr0');
- voice.renderVals().onElevenVoice({target:{value:''}});voice.renderVals().onSaveEleven();assert.equal(voice.state.elevenVoice,'qSfjem6kskBSKupE4hr0');
- voice.savedClip=async key=>{voice.lastRecordingKey=key;return null;};await voice.recordedBuffer('test answer');assert.match(voice.lastRecordingKey,/qSfjem6kskBSKupE4hr0/);
+ voice.renderVals().onVoiceProfile({target:{value:'students'}});assert.equal(voice.state.elevenVoice,'yXEnnEln9armDCyhkXcA');
+ voice.renderVals().onElevenVoice({target:{value:''}});voice.renderVals().onSaveEleven();assert.equal(voice.state.elevenVoice,'yXEnnEln9armDCyhkXcA');
+ voice.savedClip=async key=>{voice.lastRecordingKey=key;return null;};await voice.recordedBuffer('test answer');assert.match(voice.lastRecordingKey,/yXEnnEln9armDCyhkXcA/);
  voice.renderVals().onVoiceProfile({target:{value:'female'}});await voice.recordedBuffer('test answer');assert.match(voice.lastRecordingKey,/femaleTestVoice123/);
  const cancel=new context.TestComponent();cancel.stopAudio=()=>{};cancel.say=()=>{throw Error('Cancelled reply must not speak');};
  cancel.apiKey='test-only';let finishResearch;cancel.researched=()=>new Promise(resolve=>finishResearch=resolve);
@@ -47,7 +47,7 @@ vm.createContext(context);vm.runInContext(fs.readFileSync('speech-text.js','utf8
  assert.ok(!templateHasGoogleVoice(html));
  const api=new context.TestComponent();api.elevenKey='test-only-not-a-real-key';api.getCtx=()=>({decodeAudioData:async()=>({sampleRate:44100,getChannelData:()=>new Float32Array([0])})});api.savedClip=async()=>null;api.saveClip=async()=>true;
  let requested;context.fetch=async(url,options)=>{requested={url,options,body:JSON.parse(options.body)};return{ok:true,arrayBuffer:async()=>new ArrayBuffer(0)}};
- await api.ttsBuffer('إجابة جديدة');assert.match(requested.url,/qSfjem6kskBSKupE4hr0/);assert.equal(requested.body.language_code,undefined);assert.equal(requested.body.model_id,'eleven_v4');assert.equal(requested.body.voice_settings.speed,undefined);assert.equal(requested.body.voice_settings.style,undefined);assert.equal(requested.body.voice_settings.use_speaker_boost,undefined);assert.equal(requested.body.apply_text_normalization,'on');assert.equal(requested.body.text,'إجابة جديدة');
+ await api.ttsBuffer('إجابة جديدة');assert.match(requested.url,/yXEnnEln9armDCyhkXcA/);assert.equal(requested.body.language_code,undefined);assert.equal(requested.body.model_id,'eleven_v4');assert.equal(requested.body.voice_settings.speed,undefined);assert.equal(requested.body.voice_settings.style,undefined);assert.equal(requested.body.voice_settings.use_speaker_boost,undefined);assert.equal(requested.body.apply_text_normalization,'on');assert.equal(requested.body.text,'إجابة جديدة');
  api.state.elevenVoice='femaleTestVoice123';await api.ttsBuffer('إجابة جديدة');assert.match(requested.url,/femaleTestVoice123/);
  api.elevenKey='';api.savedClip=async()=>({rate:24000,samples:new Float32Array([0])});api.getCtx=()=>({createBuffer:()=>({copyToChannel:()=>{}})});api.cache.clear();assert.ok(await api.ttsBuffer('إجابة محفوظة'));
 
@@ -89,7 +89,7 @@ vm.createContext(context);vm.runInContext(fs.readFileSync('speech-text.js','utf8
  console.log('PASS: all 110 narratives exceed 100 words, old question aliases still match, six chapters advance with completed audio, Stop cancels progression, and comet never requests or interrupts audio.');
  const progressive=new context.TestComponent();progressive.elevenKey='test-only';progressive.speakId=1;progressive.savedClip=async()=>null;progressive.saveClip=async()=>true;let starts=0,reads=0,streamNodes=[];context.window.ReadableStream=function(){};
  progressive.getCtx=()=>({currentTime:1,resume:async()=>{},destination:{},createAnalyser:()=>({connect:()=>{},disconnect:()=>{}}),createBuffer:(channels,length,rate)=>({duration:length/rate,sampleRate:rate,copyToChannel:()=>{}}),createBufferSource:()=>{const node={connect:()=>{},disconnect:()=>{},stop:()=>{},start:()=>{starts++}};streamNodes.push(node);return node;}});
- context.fetch=async(url,opts)=>{assert.match(url,/qSfjem6kskBSKupE4hr0\/stream\?output_format=pcm_24000/);assert.equal(JSON.parse(opts.body).model_id,'eleven_v4');return{ok:true,body:{getReader:()=>({read:async()=>{reads++;if(reads===2)assert.equal(starts,1,'Audio must start before the full response arrives');if(reads<3)return{value:new Uint8Array([0,0,0,64]),done:false};for(const node of streamNodes)node.onended();return{done:true}}})}}};
+ context.fetch=async(url,opts)=>{assert.match(url,/yXEnnEln9armDCyhkXcA\/stream\?output_format=pcm_24000/);assert.equal(JSON.parse(opts.body).model_id,'eleven_v4');return{ok:true,body:{getReader:()=>({read:async()=>{reads++;if(reads===2)assert.equal(starts,1,'Audio must start before the full response arrives');if(reads<3)return{value:new Uint8Array([0,0,0,64]),done:false};for(const node of streamNodes)node.onended();return{done:true}}})}}};
  assert.equal(await progressive.streamSpeech('المذنب',1),true);assert.equal(starts,2);assert.equal(progressive.speaking,false);delete context.window.ReadableStream;
  console.log('PASS: selected voice streamed as PCM, starts before response completes, caches full audio and cleans up. Live streaming is not tested.');
 
