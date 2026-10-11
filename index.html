@@ -8,13 +8,14 @@
     <div class="brand"><span class="brand-icon">✦</span><div><strong>{{ characterName }}</strong><span>رحلتك إلى عالم الفضاء</span></div></div>
     <div class="actions"><select class="pill profile-select" aria-label="نسخة الشخصية والصوت" value="{{ voiceProfile }}" onChange="{{ onVoiceProfile }}"><option value="students">قسم الطلاب</option><option value="female">قسم الطالبات</option></select><button class="pill" onClick="{{ onToggleQuestions }}">الأسئلة <span class="count">{{ totalQuestions }}</span></button><button class="pill" onClick="{{ onToggleKey }}">الصوت</button><button class="pill fullscreen" onClick="{{ onFullscreen }}">ملء الشاشة</button></div>
   </header>
-  <section class="answer" aria-live="polite"><span class="eyebrow">{{ statusText }}</span><p>{{ bubbleText }}</p><div class="sources"><sc-for list="{{ sources }}" as="source"><a href="{{ source.url }}" target="_blank" rel="noopener noreferrer">{{ source.title }} ↗</a></sc-for></div><div id="google-search-attribution"></div><span class="voice-notice">{{ voiceNotice }}</span></section>
+  <section class="answer" aria-live="polite"><span class="eyebrow">{{ statusText }}</span><sc-if value="{{ showStart }}"><button class="journey-start" onClick="{{ onStartJourney }}">ابدأ الرحلة مع {{ characterName }} ✦</button></sc-if><p>{{ bubbleText }}</p><div class="sources"><sc-for list="{{ sources }}" as="source"><a href="{{ source.url }}" target="_blank" rel="noopener noreferrer">{{ source.title }} ↗</a></sc-for></div><div id="google-search-attribution"></div><span class="voice-notice">{{ voiceNotice }}</span></section>
   <footer class="voice-dock">
     <button class="voice-primary {{ listeningClass }}" onClick="{{ onMic }}" aria-label="{{ micLabel }}" aria-pressed="{{ listening }}">
       <span class="mic-orb"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"></path></svg></span>
       <span><strong>{{ micLabel }}</strong><small>{{ micHint }}</small></span><span class="voice-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
     </button>
-    <div class="dock-actions"><button onClick="{{ onToggleChat }}" aria-expanded="{{ showChat }}">{{ chatLabel }}</button><span>·</span><button onClick="{{ onReplay }}">إعادة الصوت</button><span>·</span><button onClick="{{ onStop }}">إيقاف الصوت</button></div>
+    <sc-if value="{{ showStarters }}"><div class="starter-questions" aria-label="أسئلة مقترحة لبدء الحوار"><sc-for list="{{ starterQuestions }}" as="starter"><button onClick="{{ starter.onAsk }}">{{ starter.label }}</button></sc-for></div></sc-if>
+    <div class="dock-actions"><button onClick="{{ onToggleChat }}" aria-expanded="{{ showChat }}">{{ chatLabel }}</button><span>·</span><button onClick="{{ onReplay }}">إعادة الصوت</button><span>·</span><button onClick="{{ onStop }}">إيقاف الصوت</button><sc-if value="{{ journeyStarted }}"><span>·</span><button onClick="{{ onStartJourney }}">التعريف بـ{{ characterName }}</button></sc-if></div>
     <sc-if value="{{ showChat }}"><div class="composer"><input aria-label="اكتب سؤالك عن الفضاء" placeholder="اكتب سؤالك هنا…" value="{{ input }}" onChange="{{ onInput }}" onKeyDown="{{ onKey }}"></input><button class="send" onClick="{{ onSend }}">إرسال ←</button></div></sc-if>
   </footer>
   <sc-if value="{{ showQuestions }}"><div class="scrim" onClick="{{ onClosePanels }}"></div><aside class="panel" role="dialog" aria-modal="true" aria-label="بنك الأسئلة"><div class="panel-head"><div><span class="eyebrow">اكتشف موضوعًا جديدًا</span><h2>أسئلة الفضاء</h2></div><button class="close" onClick="{{ onClosePanels }}" aria-label="إغلاق">×</button></div><input class="field" aria-label="ابحث في الأسئلة" placeholder="ابحث عن كوكب، رائد فضاء، قمر صناعي…" value="{{ search }}" onChange="{{ onSearch }}"></input><div class="categories"><sc-for list="{{ categories }}" as="c"><button class="category {{ c.active }}" onClick="{{ c.onSelect }}">{{ c.name }}</button></sc-for></div><div class="list"><sc-for list="{{ suggestions }}" as="s"><button class="question" onClick="{{ s.onAsk }}"><span>{{ s.category }}</span><strong>{{ s.q }}</strong><b>↖</b></button></sc-for><sc-if value="{{ noResults }}"><p class="empty">لا توجد أسئلة مطابقة. جرّب كلمة أخرى.</p></sc-if></div><button class="add-button" onClick="{{ onToggleAdd }}">＋ إضافة سؤال وإجابة</button><sc-if value="{{ showAdd }}"><div class="add-form"><input class="field" aria-label="السؤال الجديد" placeholder="السؤال" value="{{ newQuestion }}" onChange="{{ onNewQuestion }}"></input><textarea class="field" aria-label="إجابة السؤال الجديد" placeholder="الإجابة" value="{{ newAnswer }}" onChange="{{ onNewAnswer }}"></textarea><button class="send" onClick="{{ onAdd }}">حفظ السؤال</button><p class="hint">{{ addNotice }}</p></div></sc-if></aside></sc-if>
@@ -65,7 +66,7 @@ const backOut = p => 1 + 2.7 * Math.pow(p - 1, 3) + 1.7 * Math.pow(p - 1, 2);
 const BASE = () => ({ eLo: 1, eLh: 0, eLs: 0, eLx: 0, eLy: 0, eRo: 1, eRh: 0, eRs: 0, eRx: 0, eRy: 0, size: 1, brow: 0, browA: 0, browY: 0, smile: 1, smileS: 1, talk: 0, o: 0, frown: 0, tongue: 0, cheek: .7, tilt: 0, lookX: 0, glow: 0 });
 
 class Component extends DCLogic {
-  state = { bubble: GREET, history: [], input: '', listening: false, thinking: false, generatingAudio: false, speaking: false, showKey: false, keyDraft: '', provider: 'elevenlabs', naturalVoice: 'Achird', browserVoice: '', speed: 0.92, voiceNotice: '', showQuestions: false, search: '', category: 'الكل', showAdd: false, newQuestion: '', newAnswer: '', addNotice: '', customQuestions: [], sources: [], preparing: false, preparedCount: 0, cacheNotice: '', elevenKeyDraft: '', elevenVoice: 'qSfjem6kskBSKupE4hr0', voiceProfile: 'students', studentVoice: 'qSfjem6kskBSKupE4hr0', femaleVoice: 'FZeLZd39ejvLgzR2gY0t', importNotice: '', showChat: false, idleEnabled: true, interruptEnabled: true, sceneActive: false, cometSound: true, cometSpeech: false, sampleReady: false, sampleFingerprint: '', voiceIdentity: '' };
+  state = { journeyStarted: false, bubble: GREET, history: [], input: '', listening: false, thinking: false, generatingAudio: false, speaking: false, showKey: false, keyDraft: '', provider: 'elevenlabs', naturalVoice: 'Achird', browserVoice: '', speed: 0.92, voiceNotice: '', showQuestions: false, search: '', category: 'الكل', showAdd: false, newQuestion: '', newAnswer: '', addNotice: '', customQuestions: [], sources: [], preparing: false, preparedCount: 0, cacheNotice: '', elevenKeyDraft: '', elevenVoice: 'qSfjem6kskBSKupE4hr0', voiceProfile: 'students', studentVoice: 'qSfjem6kskBSKupE4hr0', femaleVoice: 'FZeLZd39ejvLgzR2gY0t', importNotice: '', showChat: false, idleEnabled: true, interruptEnabled: true, sceneActive: false, cometSound: true, cometSpeech: false, sampleReady: false, sampleFingerprint: '', voiceIdentity: '' };
   audioIdentities=new WeakMap();approvedSamples=new Set();
   answerId = 0; idleSince = 0; idleEvent = null; idleStep = 0; nextIdle = 0;
   apiKey = ''; elevenKey = '';
@@ -246,6 +247,27 @@ class Component extends DCLogic {
     this.identity?.rotation.set(0,0,female?.35:0);this.profileAccents?.scale.setScalar(female?1.06:1);if(this.profileAccents)this.profileAccents.visible=false;if(this.identity)this.identity.visible=false;
   }
   name() { return this.state.voiceProfile==='female'?'قُمَيرة':'قُمَير'; }
+  introduction() {
+    const female=this.state.voiceProfile==='female';
+    return 'يا هلا وسهلا! أنا '+this.name()+'، '+(female?'رفيقتكم':'رفيقكم')+' في رحلة اكتشاف الفضاء. جايكم من نادي الذكاء الاصطناعي في الجامعة العربية المفتوحة، ومرّة '+(female?'متحمّسة':'متحمّس')+' أستكشف هذا العالم معكم! خلّونا نبدأ من السماء اللي نشوفها كل ليلة، ونكتشف النجوم والكواكب، ونوصل إلى الأقمار الصناعية وحياة رُوّاد الفضاء. وبنتعرّف مع بعض على إنجازات السعودية وطموحها في الفضاء. وش ودّكم نكتشف اليوم؟ كيف يعيش رُوّاد الفضاء داخل المحطة؟ أو كيف تخدمنا الأقمار الصناعية؟ اضغطوا الميكروفون واسألوني، أو اختاروا سؤالًا من الشاشة. فضولكم هو بداية الرحلة!';
+  }
+  async startJourney() {
+    if(this.busy||this.state.preparing)return;
+    this.recognition?.abort();this.getCtx();this.updateSearchEntry('');
+    this.setState({journeyStarted:true,listening:false,showChat:false,showQuestions:false,showKey:false,sources:[]});
+    const playback=this.say(this.introduction()),introId=this.speakId;
+    this.introSpeechId=introId;
+    try{await playback;}finally{if(this.introSpeechId===introId)this.introSpeechId=null;}
+  }
+  starters() {
+    const groups=[
+      [{id:2,label:'نجم أم كوكب؟'},{id:23,label:'الحياة في محطة الفضاء'},{id:68,label:'الفضاء ورؤية السعودية'}],
+      [{id:12,label:'لماذا يطفو رُوّاد الفضاء؟'},{id:51,label:'رحلة ريانة برناوي'},{id:38,label:'الأقمار السعودية'}],
+      [{id:22,label:'محطة الفضاء الدولية'},{id:67,label:'السعودية في الفضاء'},{id:106,label:'الحطام الفضائي'}]
+    ];
+    return groups[(this.starterRound||0)%groups.length].map(item=>({...item,onAsk:()=>{const q=this.questions().find(q=>q.id===item.id);if(q){this.getCtx();this.ask(q.q);}}}));
+  }
+
   profileText(text) {return window.QUMAIR_SPEECH.text(text,this.state.voiceProfile);}
   voiceConfig() {return {voiceId:this.state.elevenVoice.trim(),profile:this.state.voiceProfile,model:'eleven_v4',stability:.5,similarity_boost:.85};}
   voiceFingerprint(config=this.voiceConfig()) {return window.QUMAIR_SPEECH.revision+':'+JSON.stringify(config);}
@@ -410,7 +432,7 @@ class Component extends DCLogic {
     const src=ctx.createBufferSource(),filter=ctx.createBiquadFilter();src.buffer=buf;filter.type='bandpass';filter.frequency.setValueAtTime(1700,ctx.currentTime);filter.frequency.exponentialRampToValueAtTime(180,ctx.currentTime+.8);src.connect(filter);filter.connect(ctx.destination);this.effectSource=src;src.onended=()=>{src.disconnect();filter.disconnect();if(this.effectSource===src)this.effectSource=null;};src.start();
   }
   async sceneComet() {
-    if(this.streamDownloading||this.state.sceneActive||this.busy||this.state.thinking||this.state.listening||this.state.preparing||!this.state.idleEnabled||this.reducedMotion)return;
+    if(this.introSpeechId===this.speakId||this.streamDownloading||this.state.sceneActive||this.busy||this.state.thinking||this.state.listening||this.state.preparing||!this.state.idleEnabled||this.reducedMotion)return;
     const token=this.sceneToken=(this.sceneToken||0)+1,original=this.state.bubble;
     const playing=this.playback;
     if(playing){this.pausedPlayback={...playing,offset:Math.min(playing.buf.duration,playing.segments?playing.segments.reduce((sum,s)=>sum+Math.min(s.duration,Math.max(0,this.getCtx().currentTime-s.start)),0):playing.offset+Math.max(0,this.getCtx().currentTime-playing.started))};}
@@ -440,7 +462,7 @@ class Component extends DCLogic {
     ++this.speakId;this.stopAudio();this.setState({preparing:true,preparedCount:0,cacheNotice:'جاري حفظ أصوات الأسئلة على هذا الجهاز…'});
     this.cancelPreparation=false; let count=0;
     try {
-      for(const q of [...this.questions(),{a:'أوه، مرَّ المُذَنَّب قريبًا مني. الحمد لله، تجاوزته بأمان.'},{a:'أعتذر عن المقاطعة. نكمل الإجابة من حيث توقفنا.'}]) {
+      for(const q of [...this.questions(),{a:this.introduction()},{a:'أوه، مرَّ المُذَنَّب قريبًا مني. الحمد لله، تجاوزته بأمان.'},{a:'أعتذر عن المقاطعة. نكمل الإجابة من حيث توقفنا.'}]) {
         if(this.cancelPreparation||this.dead)break;
         await this.ttsBuffer(q.a);count++;this.setState({preparedCount:count});
         // توليد متتابع، مع مهلة بين الطلبات لتخفيف الضغط على الخدمة.
@@ -547,7 +569,7 @@ class Component extends DCLogic {
   async ask(q) {
     q=(q||'').trim(); if(!q||this.busy) return; if(this.state.preparing){this.setState({voiceNotice:'أوقف تجهيز الأصوات قبل طرح سؤال.'});return;}
     const requestId=++this.answerId;this.cancelScene();this.resetIdle();this.recognition?.stop();++this.speakId;this.stopAudio();this.voiceController?.abort();this.busy=true;
-    this.setState({input:'',showQuestions:false,listening:false,sources:[],voiceNotice:'',thinking:true});this.updateSearchEntry('');
+    this.setState({journeyStarted:true,input:'',showQuestions:false,listening:false,sources:[],voiceNotice:'',thinking:true});this.updateSearchEntry('');
     let {a,sure,sources=[]}=this.local(q);
     try {
       if(!sure){
@@ -558,6 +580,7 @@ class Component extends DCLogic {
     } catch(e) { a='تعذّر البحث الآن. تحقق من اتصال الإنترنت والمفتاح ورصيد الخدمة، ثم حاول مرة أخرى.'; }
     finally {if(requestId===this.answerId)this.busy=false;}
     if(this.dead||requestId!==this.answerId)return;
+    this.starterRound=(this.starterRound||0)+1;
     this.setState(s=>({history:[{q,a},...s.history].slice(0,6),thinking:false,sources}));
     this.say(a);
   }
@@ -576,17 +599,18 @@ class Component extends DCLogic {
     r.onresult=e=>{const q=e.results[0]?.[0]?.transcript;if(q)this.ask(q);};
     r.onend=()=>this.setState({listening:false});
     r.onerror=e=>this.setState({listening:false,showChat:e.error==='not-allowed'||e.error==='audio-capture',voiceNotice:e.error==='no-speech'?'لم أسمع سؤالًا. اضغط الميكروفون وحاول مجددًا.':'تعذّر استخدام الميكروفون. تحقق من الإذن أو اكتب السؤال.'});
-    this.setState({listening:true,thinking:false,bubble:'أستمع إليك… تفضّل بسؤالك.',voiceNotice:''});
+    this.setState({journeyStarted:true,listening:true,thinking:false,bubble:'أستمع إليك… تفضّل بسؤالك.',voiceNotice:''});
     try{r.start();}catch{this.setState({listening:false,showChat:true,voiceNotice:'الميكروفون غير متاح الآن. يمكنك كتابة سؤالك.'});}
   }
   renderVals() {
     const s=this.state, all=this.questions();
     const found=all.filter(q=>(s.category==='الكل'||q.category===s.category)&&(!s.search||norm(q.q+' '+q.a).includes(norm(s.search))));
     return {
+      journeyStarted:s.journeyStarted,showStart:!s.journeyStarted&&!s.thinking&&!s.speaking&&!s.listening&&!s.preparing,showStarters:!s.thinking&&!s.speaking&&!s.listening&&!s.preparing&&!s.sceneActive,starterQuestions:this.starters(),onStartJourney:()=>this.startJourney(),
       profileClass:s.voiceProfile==='female'?'female-experience':'students-experience',characterName:this.name(),cometSpeech:s.cometSpeech,cometSound:s.cometSound,onCometSpeech:e=>this.setState({cometSpeech:e.target.checked}),onCometSound:e=>this.setState({cometSound:e.target.checked}),voiceIdentity:s.voiceIdentity,onVerifyVoice:()=>this.verifyVoice(),sampleReady:s.sampleReady&&s.sampleFingerprint===this.voiceFingerprint(),onApproveSample:()=>{if(s.sampleReady&&s.sampleFingerprint===this.voiceFingerprint()){this.approvedSamples.add(s.sampleFingerprint);this.setState({cacheNotice:'اعتُمدت العينة للصوت والسرعة الحاليين.'});}},approvalStatus:this.approvedSamples.has(this.voiceFingerprint())?'العينة معتمدة لهذا القسم.':'العينة لم تُعتمد بعد.',
       interruptEnabled:s.interruptEnabled,onInterruptEnabled:e=>this.setState({interruptEnabled:e.target.checked}),onDemoComet:()=>{if(this.reducedMotion){this.setState({voiceNotice:'تفضيل تقليل الحركة في الجهاز مفعّل؛ مشهد المذنب متوقف.'});return;}this.getCtx();this.setState({showKey:false,idleEnabled:true});this.sceneComet();},
       showChat:s.showChat,chatLabel:s.showChat?'إخفاء الكتابة':'أفضّل الكتابة',onToggleChat:()=>this.setState({showChat:!s.showChat}),listening:s.listening,listeningClass:s.listening?'listening':'',micHint:s.listening?'اضغط لإنهاء الاستماع':'اضغط الميكروفون وتفضّل بسؤالك',idleEnabled:s.idleEnabled,onIdleEnabled:e=>{if(!e.target.checked){this.cancelScene();++this.speakId;this.voiceController?.abort();this.stopAudio();}this.resetIdle();this.setState({idleEnabled:e.target.checked});},
-      preparationTotal:all.length+2,preparing:s.preparing,preparedCount:s.preparedCount,cacheNotice:s.cacheNotice,onPrepare:()=>this.prepareVoices(),onCancelPrepare:()=>{this.cancelPreparation=true;this.voiceController?.abort();},
+      preparationTotal:all.length+3,preparing:s.preparing,preparedCount:s.preparedCount,cacheNotice:s.cacheNotice,onPrepare:()=>this.prepareVoices(),onCancelPrepare:()=>{this.cancelPreparation=true;this.voiceController?.abort();},
       mountRef:this.mountRef, bubbleText:s.bubble, voiceNotice:s.voiceNotice,
       statusText:s.listening?'أستمع لسؤالك':s.generatingAudio?'أجهّز الصوت…':s.thinking?'أتحقق من الإجابة…':s.speaking?this.name()+' '+(s.voiceProfile==='female'?'تتحدث':'يتحدث'):'عالم واسع… يبدأ بسؤال',
       totalQuestions:all.length, showQuestions:s.showQuestions,showKey:s.showKey,
@@ -609,7 +633,7 @@ class Component extends DCLogic {
       onProvider:e=>{if(s.preparing||this.busy)return;this.cancelScene();++this.speakId;this.voiceController?.abort();this.stopAudio();this.setState({provider:e.target.value,thinking:false,generatingAudio:false});},
       importNotice:s.importNotice,onImportAudio:e=>this.importAudio(e),
       elevenKeyDraft:s.elevenKeyDraft,elevenVoice:s.elevenVoice,voiceProfile:s.voiceProfile,
-      onVoiceProfile:e=>{if(s.preparing||this.busy)return;this.cancelScene();++this.speakId;this.voiceController?.abort();this.stopAudio();const profile=e.target.value;this.setState({sampleReady:false,voiceIdentity:'',bubble:profile==='female'?'أهلًا، أنا قُمَيرة، رفيقتك في استكشاف الفضاء وإنجازات السعودية.':'أهلًا، أنا قُمَير، رفيقك في استكشاف الفضاء وإنجازات السعودية.',voiceProfile:profile,elevenVoice:profile==='female'?s.femaleVoice:s.studentVoice,voiceNotice:profile==='female'&&!s.femaleVoice?'أضف معرّف الصوت النسائي الذي اخترته.':''});this.applyProfile(profile);},
+      onVoiceProfile:e=>{if(s.preparing||this.busy)return;this.cancelScene();++this.speakId;this.voiceController?.abort();this.stopAudio();const profile=e.target.value;this.setState({journeyStarted:false,sampleReady:false,voiceIdentity:'',bubble:profile==='female'?'أهلًا، أنا قُمَيرة، رفيقتك في استكشاف الفضاء وإنجازات السعودية.':'أهلًا، أنا قُمَير، رفيقك في استكشاف الفضاء وإنجازات السعودية.',voiceProfile:profile,elevenVoice:profile==='female'?s.femaleVoice:s.studentVoice,voiceNotice:profile==='female'&&!s.femaleVoice?'أضف معرّف الصوت النسائي الذي اخترته.':''});this.applyProfile(profile);},
       onElevenKey:e=>this.setState({elevenKeyDraft:e.target.value}),onElevenVoice:e=>{if(!s.preparing){const voice=e.target.value.trim();this.setState({elevenVoice:voice,[s.voiceProfile==='female'?'femaleVoice':'studentVoice']:voice});}},
       onSaveEleven:()=>{const voice=s.elevenVoice.trim()||(s.voiceProfile==='female'?'FZeLZd39ejvLgzR2gY0t':'qSfjem6kskBSKupE4hr0');this.elevenKey=s.elevenKeyDraft.trim()||this.elevenKey;this.cache.clear();this.setState({elevenVoice:voice,[s.voiceProfile==='female'?'femaleVoice':'studentVoice']:voice,elevenKeyDraft:'',provider:this.elevenKey?'elevenlabs':s.provider,voiceNotice:this.elevenKey?'تم إدخال بيانات ElevenLabs. اختبر العينة للتحقق من الربط والنطق.':!s.elevenVoice?'أُعيد معرّف الصوت المختار. أضف مفتاح ElevenLabs لتفعيله.':'أضف مفتاح ElevenLabs لتفعيل الصوت.'});},
       keyDraft:s.keyDraft,onKeyDraft:e=>this.setState({keyDraft:e.target.value}),
