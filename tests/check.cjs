@@ -4,7 +4,9 @@ const source=html.match(/<script type="text\/x-dc" data-dc-script>([\s\S]*?)<\/s
 
 const context={window:{},React:{createRef:()=>({current:null})},DCLogic:class{setState(p){this.state={...this.state,...(typeof p==='function'?p(this.state):p)}}},console,AbortController,setTimeout,clearTimeout,clearInterval,performance,localStorage:{getItem:()=>null,setItem:()=>{}},document:{getElementById:()=>null}};
 vm.createContext(context);vm.runInContext(fs.readFileSync('speech-text.js','utf8'),context);vm.runInContext(fs.readFileSync('questions.js','utf8'),context);vm.runInContext(fs.readFileSync('saudi-journey.js','utf8'),context);vm.runInContext(source+'\nglobalThis.TestComponent=Component;',context);
+const ProductionComponent=context.TestComponent;context.TestComponent=class extends ProductionComponent{constructor(){super();this.servicesEnabled=true;}};
 (async()=>{
+ const paused=new ProductionComponent();assert.equal(paused.servicesEnabled,false);let serviceCalls=0;paused.agentSdk=async()=>{serviceCalls++;throw Error('must not run')};paused.reveal=t=>paused.setState({bubble:t});await paused.connectAgent(false);await paused.say('نص بدون صوت');assert.equal(paused.state.bubble,'نص بدون صوت');assert.equal(await paused.streamSpeech('نص',1),null);await assert.rejects(paused.ttsBuffer('نص'),/SERVICE_PAUSED/);await paused.verifyVoice();await paused.testPronunciation();await paused.prepareVoices();paused.mic();await paused.ask('سؤال جديد خارج البنك');assert.equal(serviceCalls,0);assert.match(paused.state.bubble,/متوقفان/);assert.equal(paused.state.agentVoiceEnabled,false);console.log('PASS: production defaults block all ElevenLabs entry points; bank and fallback text remain available.');
  const c=new context.TestComponent();assert.equal(c.questions().length,110);
  const journey=new context.TestComponent();let introSpoken,recorderStopped=false;
  journey.getCtx=()=>({});journey.recognition={abort:()=>{recorderStopped=true}};journey.say=text=>{introSpoken=text};
