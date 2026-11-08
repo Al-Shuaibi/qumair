@@ -1,6 +1,6 @@
 <!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>قُمَير | رفيقك في عالم الفضاء</title><meta name="description" content="مساعد تعليمي تفاعلي عن الفضاء وإنجازات المملكة العربية السعودية"><script src="speech-text.js"></script><script src="questions.js"></script><script src="saudi-journey.js"></script><script src="audio-manifest.js"></script><script src="support.js"></script></head><body><x-dc><helmet>
 <link rel="stylesheet" href="_ds/modernist-7f10ae50-1a00-4a19-a32d-1a8d3e45be8a/styles.css">
-<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="app.css?conversation=20261109">
 </helmet>
 <main class="experience {{ profileClass }}" dir="rtl">
   <div class="stage" ref="{{ mountRef }}" aria-label="مجسم قُمَير ثلاثي الأبعاد"></div>
@@ -14,6 +14,8 @@
       <span class="mic-orb"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"></path></svg></span>
       <span><strong>{{ micLabel }}</strong><small>{{ micHint }}</small></span><span class="voice-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
     </button>
+    <div class="conversation-controls" aria-label="أسلوب المحادثة والجمهور"><button class="pill conversation-style" onClick="{{ onConversationStyle }}" aria-pressed="{{ proactive }}">{{ conversationStyleLabel }}</button><label><span>الجمهور</span><select class="pill audience-select" aria-label="طريقة مخاطبة الجمهور" value="{{ audience }}" onChange="{{ onAudience }}"><option value="group">عرض جماعي</option><option value="male">حوار مع طالب</option><option value="female">حوار مع طالبة</option></select></label></div>
+    <sc-if value="{{ agentConnected }}"><small class="connection-note">الاتصال مستمر أثناء الصمت وقد يستهلك رصيدًا. لإنهائه اضغط «إنهاء المحادثة».</small></sc-if>
     <sc-if value="{{ showStarters }}"><div class="starter-questions" aria-label="أسئلة مقترحة لبدء الحوار"><sc-for list="{{ starterQuestions }}" as="starter"><button onClick="{{ starter.onAsk }}">{{ starter.label }}</button></sc-for></div></sc-if>
     <div class="dock-actions"><button onClick="{{ onToggleChat }}" aria-expanded="{{ showChat }}">{{ chatLabel }}</button><span>·</span><button onClick="{{ onReplay }}">إعادة الصوت</button><span>·</span><button onClick="{{ onStop }}">إيقاف الصوت</button><sc-if value="{{ journeyStarted }}"><span>·</span><button onClick="{{ onStartJourney }}">التعريف بـ{{ characterName }}</button></sc-if></div>
     <sc-if value="{{ showChat }}"><div class="composer"><input aria-label="اكتب سؤالك عن الفضاء" placeholder="اكتب سؤالك هنا…" value="{{ input }}" onChange="{{ onInput }}" onKeyDown="{{ onKey }}"></input><button class="send" onClick="{{ onSend }}">إرسال ←</button></div></sc-if>
@@ -67,7 +69,7 @@ const backOut = p => 1 + 2.7 * Math.pow(p - 1, 3) + 1.7 * Math.pow(p - 1, 2);
 const BASE = () => ({ eLo: 1, eLh: 0, eLs: 0, eLx: 0, eLy: 0, eRo: 1, eRh: 0, eRs: 0, eRx: 0, eRy: 0, size: 1, brow: 0, browA: 0, browY: 0, smile: 1, smileS: 1, talk: 0, o: 0, frown: 0, tongue: 0, cheek: .7, tilt: 0, lookX: 0, glow: 0 });
 
 class Component extends DCLogic {
-  state = { fullAnswer: '', agentVoiceEnabled: false, agentConnected: false, agentConnecting: false, studentAgent: 'agent_1801m4m793rmetft16v107j4rsyb', femaleAgent: 'agent_5701m4mdwvadep1ahx64btrx53g5', showTranscript: false, saudiJourneyActive: false, saudiJourneyIndex: 0, journeyStarted: false, bubble: GREET, history: [], input: '', listening: false, thinking: false, generatingAudio: false, speaking: false, showKey: false, keyDraft: '', provider: 'elevenlabs', naturalVoice: 'Achird', browserVoice: '', speed: 0.92, voiceNotice: '', showQuestions: false, search: '', category: 'الكل', showAdd: false, newQuestion: '', newAnswer: '', addNotice: '', customQuestions: [], sources: [], preparing: false, preparedCount: 0, cacheNotice: '', elevenKeyDraft: '', elevenVoice: 'yXEnnEln9armDCyhkXcA', voiceProfile: 'students', studentVoice: 'yXEnnEln9armDCyhkXcA', femaleVoice: 'VjxKp6w1MCufETfW5zFM', importNotice: '', showChat: false, idleEnabled: true, interruptEnabled: false, sceneActive: false, cometSound: false, cometSpeech: false, sampleReady: false, sampleFingerprint: '', voiceIdentity: '' };
+  state = { conversationStyle: 'quiet', audience: 'group', fullAnswer: '', agentVoiceEnabled: false, agentConnected: false, agentConnecting: false, studentAgent: 'agent_1801m4m793rmetft16v107j4rsyb', femaleAgent: 'agent_5701m4mdwvadep1ahx64btrx53g5', showTranscript: false, saudiJourneyActive: false, saudiJourneyIndex: 0, journeyStarted: false, bubble: GREET, history: [], input: '', listening: false, thinking: false, generatingAudio: false, speaking: false, showKey: false, keyDraft: '', provider: 'elevenlabs', naturalVoice: 'Achird', browserVoice: '', speed: 0.92, voiceNotice: '', showQuestions: false, search: '', category: 'الكل', showAdd: false, newQuestion: '', newAnswer: '', addNotice: '', customQuestions: [], sources: [], preparing: false, preparedCount: 0, cacheNotice: '', elevenKeyDraft: '', elevenVoice: 'yXEnnEln9armDCyhkXcA', voiceProfile: 'students', studentVoice: 'yXEnnEln9armDCyhkXcA', femaleVoice: 'VjxKp6w1MCufETfW5zFM', importNotice: '', showChat: false, idleEnabled: true, interruptEnabled: false, sceneActive: false, cometSound: false, cometSpeech: false, sampleReady: false, sampleFingerprint: '', voiceIdentity: '' };
   audioIdentities=new WeakMap();approvedSamples=new Set();
   answerId = 0; idleSince = 0; idleEvent = null; idleStep = 0; nextIdle = 0;
   apiKey = ''; elevenKey = ''; servicesEnabled = false;
@@ -397,6 +399,33 @@ class Component extends DCLogic {
     if(session)Promise.resolve(session.endSession()).catch(()=>{});
     this.speaking=false;this.setState({agentConnected:false,agentConnecting:false,listening:false,speaking:false});
   }
+  cleanAgentText(text) {
+    return String(text||'').replace(/\[(?:cheerful|concerned|hopeful|friendly|excited|excitedly|happy|sad|sadly|curious|curiously|thoughtful|warmly|confidently|empathetically|patiently|enthusiastically|seriously|chuckles|laughing|sighs|whispers|whispering|shouts|shouting|laughs|sigh|pause|short pause|long pause)\]/gi,'').replace(/ {2,}/g,' ').trim();
+  }
+  audienceContext() {
+    const mode=this.state.audience;
+    return mode==='male'?'الجمهور الآن: حوار مع طالب واحد. خاطبه بصيغة المفرد المذكر.':mode==='female'?'الجمهور الآن: حوار مع طالبة واحدة. خاطبها بصيغة المفرد المؤنث.':'الجمهور الآن: عرض جماعي. خاطب الحضور بصيغة الجمع: يا هلا فيكم، تخيلوا، وش ودكم. لا تفترض جنس الحضور.';
+  }
+  conversationContext() {
+    return this.audienceContext()+' اسمك '+this.name()+'، وتحدث عن نفسك بصيغة '+(this.state.voiceProfile==='female'?'المؤنث':'المذكر')+'. '+(this.state.conversationStyle==='quiet'?'الوضع: الإجابة عند السؤال فقط. لا تبادر بالكلام أو أسئلة المتابعة أو التعليق على الصمت. انتظر سؤالًا مباشرًا وأجب عنه ثم انتظر. لا تنه الاتصال لمجرد الصمت.':'الوضع: تفاعل ومبادرة. يمكنك أحيانًا مشاركة معلومة فضائية قصيرة أو سؤال واحد لطيف دون إلحاح أو تكرار. إذا لم يرد أحد انتظر.')+' لا تجب عن تحديث الإعدادات هذا. مجالك يشمل الفلك العام والنجوم وأسماءها العربية ومنها سهيل والثريا، وليس إنجازات السعودية وحدها. لا ترفض موضوعًا فلكيًا لغيابه عن قاعدة المعرفة؛ بيّن عدم اليقين عند الحاجة، ولا تدّع البحث دون أداة. لا تكتب وسوم أداء أو مشاعر بين أقواس.';
+  }
+  applyConversationVolume(session=this.agentSession) {
+    if(session&&!this.agentSessionTextOnly)session.setVolume?.({volume:this.state.conversationStyle==='proactive'||this.agentTurnAllowed?1:0});
+  }
+  allowAgentAnswer() {
+    this.agentTurnAllowed=true;this.applyConversationVolume();
+  }
+  setConversationStyle(style) {
+    if(!['quiet','proactive'].includes(style))return;
+    this.agentTurnAllowed=false;this.agentAudibleTurnStarted=false;
+    this.setState({conversationStyle:style,speaking:false,thinking:false,voiceNotice:style==='quiet'?'وضع السؤال فقط: لا مبادرات صوتية؛ اسأل بصوتك أو اكتب.':'وضع التفاعل: المبادرة بالحديث متاحة.'});
+    this.speaking=false;this.applyConversationVolume();
+    this.agentSession?.sendContextualUpdate(this.conversationContext());
+  }
+  setAudience(audience) {
+    if(!['group','male','female'].includes(audience))return;
+    this.setState({audience});this.agentSession?.sendContextualUpdate(this.conversationContext());
+  }
   async connectAgent(textOnly=false,question='',options={}) {
     if(!this.servicesEnabled){this.setState({thinking:false,voiceNotice:'المحادثة الصوتية والبحث متوقفان لحماية الرصيد.'});return;}
     if(this.state.preparing)return;
@@ -404,12 +433,13 @@ class Component extends DCLogic {
     if(!textOnly&&question&&this.agentSession&&!this.agentSessionTextOnly&&this.agentSessionProfile===this.state.voiceProfile){
       if(!options.keepJourney)this.cancelSaudiJourney();
       this.cancelScene();this.busy=false;this.agentSession.sendUserActivity?.();
+      this.allowAgentAnswer();this.agentSession.sendContextualUpdate(this.conversationContext());
       this.lastAgentQuestion=options.readText?'قراءة النص المختار':question;
       this.setState({thinking:true,voiceNotice:'',input:'',showQuestions:false});
       if(options.readText)this.agentSession.sendContextualUpdate('اقرأ النص التعليمي المرسل كاملًا دون مقدمة أو تلخيص، وتوقف إذا قاطعك الزائر.');
       this.agentSession.sendUserMessage(question);return;
     }
-    this.endAgent();const run=this.agentRun;
+    this.endAgent();const run=this.agentRun;this.agentTurnAllowed=false;this.agentAudibleTurnStarted=false;
     if(!options.keepJourney)this.cancelSaudiJourney();this.cancelScene();this.recognition?.abort();++this.speakId;this.voiceController?.abort();this.stopAudio();
     this.setState({journeyStarted:true,agentConnecting:true,thinking:true,voiceNotice:'',showQuestions:false,input:'',sources:[]});
     let userEcho=false,firstAgentResponse=true,connectionStage='authorization';
@@ -418,24 +448,27 @@ class Component extends DCLogic {
       connectionStage='sdk';const {Conversation}=await this.agentSdk();if(run!==this.agentRun||this.dead)return;
       connectionStage='session';
       const session=await Conversation.startSession({...authorization,textOnly,connectionType:textOnly?'websocket':'webrtc',
+        onConversationCreated:created=>{if(run===this.agentRun&&!textOnly){this.agentSessionTextOnly=false;this.applyConversationVolume(created);}},
         onMessage:msg=>{
           if(run!==this.agentRun||this.dead)return;
-          if(msg.source==='user'||msg.role==='user'){userEcho=true;this.lastAgentQuestion=msg.message;this.setState({thinking:true});return;}
+          if(msg.source==='user'||msg.role==='user'){userEcho=true;this.allowAgentAnswer();this.lastAgentQuestion=this.cleanAgentText(msg.message);this.setState({thinking:true});return;}
           if(msg.source!=='ai'&&msg.role!=='agent'&&msg.role!=='assistant')return;
           if(textOnly){const first=firstAgentResponse;firstAgentResponse=false;const normalized=(msg.message||'').normalize('NFKD').replace(/[\u064B-\u065F\u0670\u0640]/g,'');if(!userEcho||(first&&/(?:انا|أنا)\s*(?:قمير|قميرة)/.test(normalized)))return;}
-          const answer=msg.message;if(!answer)return;this.setState({fullAnswer:''});
+          if(!textOnly&&this.state.conversationStyle==='quiet'&&!this.agentTurnAllowed)return;
+          const answer=this.cleanAgentText(msg.message);if(!answer)return;this.setState({fullAnswer:''});
           this.busy=false;this.setState(v=>({thinking:false,history:[{q:this.lastAgentQuestion||question||'محادثة قُمَير',a:answer},...v.history].slice(0,6)}));
           if(textOnly){const done=this.agentSession;this.agentSession=null;this.agentRun++;if(done)Promise.resolve(done.endSession()).catch(()=>{});this.setState({agentConnected:false,agentConnecting:false});this.say(answer);}else this.reveal(answer);
         },
         onInterruption:()=>{if(run!==this.agentRun||textOnly||this.dead)return;this.speaking=false;this.setState({speaking:false,listening:true,thinking:false,voiceNotice:''});},
-        onModeChange:({mode})=>{if(run!==this.agentRun||textOnly||this.dead)return;this.speaking=mode==='speaking';this.setState({speaking:this.speaking,listening:!this.speaking,thinking:false});},
+        onModeChange:({mode})=>{if(run!==this.agentRun||textOnly||this.dead)return;const audible=this.state.conversationStyle==='proactive'||this.agentTurnAllowed;this.speaking=mode==='speaking'&&audible;if(this.speaking)this.agentAudibleTurnStarted=true;if(mode==='listening'&&this.agentAudibleTurnStarted){this.agentAudibleTurnStarted=false;this.agentTurnAllowed=false;}this.applyConversationVolume();this.setState({speaking:this.speaking,listening:!this.speaking,thinking:false});},
         onDisconnect:()=>{if(run!==this.agentRun||this.dead)return;this.agentSession=null;this.busy=false;this.speaking=false;this.setState({agentConnected:false,agentConnecting:false,listening:false,speaking:false,thinking:false});},
         onError:()=>{if(run!==this.agentRun||this.dead)return;this.busy=false;this.setState({thinking:false,voiceNotice:'تعذّر اتصال ElevenAgents. تحقق من نشر الـAgent وإتاحة الاتصال من الموقع ورصيد المحادثات.'});}
       });
       if(run!==this.agentRun||this.dead){await session.endSession();return;}
       this.agentSession=session;this.agentSessionProfile=this.state.voiceProfile;this.agentSessionTextOnly=textOnly;this.setState({agentConnected:true,agentConnecting:false,thinking:textOnly,listening:!textOnly});
-      connectionStage='context';session.sendContextualUpdate('أنت '+this.name()+'. أجب بالعربية بوضوح وبجمل قصيرة. في الأسئلة العادية ابدأ بالإجابة مباشرة، ثم شرح موجز من جملتين إلى أربع جمل. السرد الطويل فقط إذا طلب الزائر رحلة أو قصة أو تفاصيل أكثر. أعطِ الأولوية للسؤال الجديد عند المقاطعة ولا تواصل الجواب السابق. التزم بالفضاء والمعلومات الموثوقة، ولا تدع البحث دون أداة.');
-      if(question){userEcho=true;this.lastAgentQuestion=options.readText?'قراءة النص المختار':question;if(options.readText)session.sendContextualUpdate('طلب الزائر قراءة نص تعليمي جاهز. اقرئي أو اقرأ النص التالي كما هو كاملًا دون ترحيب جديد أو تلخيص أو إضافة معلومات. إذا قاطع الزائر القراءة توقّف واستمع لسؤاله.');session.sendUserMessage(question);}
+      this.applyConversationVolume(session);
+      connectionStage='context';session.sendContextualUpdate(this.conversationContext());session.sendContextualUpdate('أنت '+this.name()+'. أجب بالعربية بوضوح وبجمل قصيرة. في الأسئلة العادية ابدأ بالإجابة مباشرة، ثم شرح موجز من جملتين إلى أربع جمل. السرد الطويل فقط إذا طلب الزائر رحلة أو قصة أو تفاصيل أكثر. أعطِ الأولوية للسؤال الجديد عند المقاطعة ولا تواصل الجواب السابق. التزم بالفضاء والمعلومات الموثوقة، ولا تدع البحث دون أداة.');
+      if(question){userEcho=true;this.allowAgentAnswer();this.lastAgentQuestion=options.readText?'قراءة النص المختار':question;if(options.readText)session.sendContextualUpdate('طلب الزائر قراءة نص تعليمي جاهز. اقرئي أو اقرأ النص التالي كما هو كاملًا دون ترحيب جديد أو تلخيص أو إضافة معلومات. إذا قاطع الزائر القراءة توقّف واستمع لسؤاله.');session.sendUserMessage(question);}
     }catch(e){
       if(run!==this.agentRun||this.dead)return;this.busy=false;
       const notice=this.agentFailureNotice(e,connectionStage);this.endAgent();
@@ -450,7 +483,7 @@ class Component extends DCLogic {
     this.playback=null;this.src = null; this.analyser = null; this.speaking = false; this.setState({speaking:false});
     window.speechSynthesis?.cancel();
   }
-  reveal(text) { clearInterval(this.typer); this.typing=false; this.setState({bubble:text}); }
+  reveal(text) { clearInterval(this.typer); this.typing=false; this.setState({bubble:this.cleanAgentText(text)}); }
   async audioDB() {
     if(!window.indexedDB) return null;
     if(this.db) return this.db;
@@ -687,6 +720,7 @@ class Component extends DCLogic {
       preparationTotal:this.priorityRecordings().length,preparing:s.preparing,preparedCount:s.preparedCount,cacheNotice:s.cacheNotice,onPrepare:()=>this.prepareVoices(),onCancelPrepare:()=>{this.cancelPreparation=true;this.voiceController?.abort();},
       mountRef:this.mountRef, bubbleText:s.bubble, voiceNotice:s.voiceNotice,
       statusText:s.listening?'أستمع لسؤالك':s.generatingAudio?'أجهّز الصوت…':s.thinking?'أتحقق من الإجابة…':s.speaking?this.name()+' '+(s.voiceProfile==='female'?'تتحدث':'يتحدث'):'عالم واسع… يبدأ بسؤال',
+      agentConnected:s.agentConnected,proactive:s.conversationStyle==='proactive',conversationStyleLabel:s.conversationStyle==='proactive'?'تفاعل ومبادرة':'عند السؤال فقط',onConversationStyle:()=>this.setConversationStyle(s.conversationStyle==='proactive'?'quiet':'proactive'),audience:s.audience,onAudience:e=>this.setAudience(e.target.value),
       totalQuestions:all.length, showQuestions:s.showQuestions,showKey:s.showKey,
       onToggleQuestions:()=>this.setState({showQuestions:!s.showQuestions,showKey:false}),
       onToggleKey:()=>this.setState({showKey:!s.showKey,showQuestions:false}),
@@ -732,6 +766,7 @@ class Component extends DCLogic {
   }
 }
 </script></body></html>
+
 
 
 

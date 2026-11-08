@@ -38,3 +38,11 @@ html,body{height:auto!important;overflow-y:auto!important;overflow-x:hidden;scro
 
 /* تبقى أزرار الإجابة قابلة للنقر رغم شفافية طبقة المجسم. */
 .answer button{pointer-events:auto}.read-story{display:block;margin:4px 0 8px;line-height:1.7}.answer .eyebrow{display:block}
+
+/* Conversation controls remain independent of character and microphone. */
+.conversation-controls{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:8px;margin:10px 0 2px;pointer-events:auto}
+.conversation-controls label{display:flex;align-items:center;gap:7px;font-size:12px;color:#ddd6e8}
+.conversation-controls .pill{padding:8px 13px;font-size:12px;min-height:38px}
+.conversation-style[aria-pressed="true"]{border-color:#e6bc65;color:#f5d99d}
+.connection-note{display:block;max-width:470px;text-align:center;font-size:10px;line-height:1.6;color:#d0c7d9;margin:5px auto}
+@media(max-height:760px){.conversation-controls{margin-top:5px}.conversation-controls .pill{min-height:32px;padding:5px 10px}.connection-note{font-size:9px}}
