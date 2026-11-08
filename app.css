@@ -46,3 +46,5 @@ html,body{height:auto!important;overflow-y:auto!important;overflow-x:hidden;scro
 .conversation-style[aria-pressed="true"]{border-color:#e6bc65;color:#f5d99d}
 .connection-note{display:block;max-width:470px;text-align:center;font-size:10px;line-height:1.6;color:#d0c7d9;margin:5px auto}
 @media(max-height:760px){.conversation-controls{margin-top:5px}.conversation-controls .pill{min-height:32px;padding:5px 10px}.connection-note{font-size:9px}}
+/* Keep the approved hat clear of the answer; place desktop controls beside the mic. */
+@media(min-width:801px){.conversation-controls{position:absolute;right:calc(50% + 168px);top:0;width:215px;margin:0;gap:7px}.voice-dock .connection-note{max-width:470px}}
