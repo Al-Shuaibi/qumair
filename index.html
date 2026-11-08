@@ -358,6 +358,7 @@ class Component extends DCLogic {
   async agentSdk() {return await import('./eleven-agent-sdk.js');}
   async agentAuthorization(textOnly,agentId) {
     if(!this.servicesEnabled||!this.elevenKey)throw Error('MISSING_KEY');
+    if(window.location?.protocol==='file:')throw Error('LOCAL_FILE');
     this.agentAuthController?.abort();const controller=new AbortController();this.agentAuthController=controller;
     const timer=setTimeout(()=>controller.abort(),15000);
     try {
@@ -369,6 +370,26 @@ class Component extends DCLogic {
       if(typeof data.token!=='string'||!data.token.trim())throw Error('INVALID_AUTH_RESPONSE');
       return {conversationToken:data.token};
     }finally{clearTimeout(timer);if(this.agentAuthController===controller)this.agentAuthController=null;}
+  }
+  agentFailureNotice(e,stage='connection') {
+    const status=Number.isInteger(e?.status)?e.status:null;
+    const code=typeof e?.serviceCode==='string'&&/^[a-z0-9_]{1,80}$/.test(e.serviceCode)?e.serviceCode:'';
+    const labels={authorization:'AUTH',sdk:'SDK',session:'SESSION',context:'CONTEXT',connection:'CONNECTION'};
+    const name=['TypeError','AbortError','NotAllowedError','NotFoundError','NotReadableError','SecurityError'].includes(e?.name)?e.name:'ERROR';
+    const suffix=' · رمز '+(labels[stage]||'CONNECTION')+'/'+(status||name)+(code?'/'+code:'');
+    let notice='تعذّر بدء المحادثة المحمية.';
+    if(code==='api_key_id_used_as_api_key')notice='أُدخل معرّف المفتاح بدل المفتاح السري الكامل. انسخ المفتاح الكامل من وقت إنشائه؛ المعرّف والأحرف الأخيرة لا تكفي.';
+    else if(status===401)notice='مفتاح ElevenLabs غير صالح. أعد إدخال المفتاح السري الكامل في إعدادات الصوت.';
+    else if(status===403)notice='المفتاح لا يسمح بالوصول إلى مساعد هذا القسم. راجع صلاحيات ElevenAgents للمفتاح والحساب.';
+    else if(status===429)notice='الخدمة وصلت حد الطلبات أو الاتصالات المتزامنة. انتظر قليلًا ثم أعد المحاولة.';
+    else if(e?.message==='LOCAL_FILE')notice='هذه نسخة ملف محلي. افتح الموقع https://al-shuaibi.github.io/qumair/ ثم فعّل الصوت هناك.';
+    else if(e?.message==='MISSING_KEY')notice='أدخل مفتاحك واضغط تفعيل الصوت والبحث. أبقِ مصادقة المساعد مفعّلة.';
+    else if(name==='NotAllowedError')notice='اسمح للموقع باستخدام الميكروفون من إعدادات الموقع في المتصفح.';
+    else if(name==='NotFoundError')notice='لم يجد المتصفح ميكروفونًا متاحًا. تحقق من توصيله واختياره.';
+    else if(name==='NotReadableError')notice='تعذّر فتح الميكروفون. أغلق التطبيقات التي تستخدمه ثم حاول مجددًا.';
+    else if(stage==='authorization'&&name==='TypeError')notice='تعذّر الوصول إلى خدمة إصدار إذن الاتصال. تحقق من الشبكة أو مانع الطلبات في المتصفح.';
+    else if(stage==='sdk')notice='تعذّر تحميل مكتبة المحادثة. حدّث الصفحة تحديثًا كاملًا وتحقق من الاتصال.';
+    return notice+suffix;
   }
   endAgent() {
     this.agentAuthController?.abort();
@@ -391,10 +412,11 @@ class Component extends DCLogic {
     this.endAgent();const run=this.agentRun;
     if(!options.keepJourney)this.cancelSaudiJourney();this.cancelScene();this.recognition?.abort();++this.speakId;this.voiceController?.abort();this.stopAudio();
     this.setState({journeyStarted:true,agentConnecting:true,thinking:true,voiceNotice:'',showQuestions:false,input:'',sources:[]});
-    let userEcho=false,firstAgentResponse=true;
+    let userEcho=false,firstAgentResponse=true,connectionStage='authorization';
     try {
       const authorization=await this.agentAuthorization(textOnly,agentId);if(run!==this.agentRun||this.dead)return;
-      const {Conversation}=await this.agentSdk();if(run!==this.agentRun||this.dead)return;
+      connectionStage='sdk';const {Conversation}=await this.agentSdk();if(run!==this.agentRun||this.dead)return;
+      connectionStage='session';
       const session=await Conversation.startSession({...authorization,textOnly,connectionType:textOnly?'websocket':'webrtc',
         onMessage:msg=>{
           if(run!==this.agentRun||this.dead)return;
@@ -412,11 +434,11 @@ class Component extends DCLogic {
       });
       if(run!==this.agentRun||this.dead){await session.endSession();return;}
       this.agentSession=session;this.agentSessionProfile=this.state.voiceProfile;this.agentSessionTextOnly=textOnly;this.setState({agentConnected:true,agentConnecting:false,thinking:textOnly,listening:!textOnly});
-      session.sendContextualUpdate('أنت '+this.name()+'. أجب بالعربية بوضوح وبجمل قصيرة. في الأسئلة العادية ابدأ بالإجابة مباشرة، ثم شرح موجز من جملتين إلى أربع جمل. السرد الطويل فقط إذا طلب الزائر رحلة أو قصة أو تفاصيل أكثر. أعطِ الأولوية للسؤال الجديد عند المقاطعة ولا تواصل الجواب السابق. التزم بالفضاء والمعلومات الموثوقة، ولا تدع البحث دون أداة.');
+      connectionStage='context';session.sendContextualUpdate('أنت '+this.name()+'. أجب بالعربية بوضوح وبجمل قصيرة. في الأسئلة العادية ابدأ بالإجابة مباشرة، ثم شرح موجز من جملتين إلى أربع جمل. السرد الطويل فقط إذا طلب الزائر رحلة أو قصة أو تفاصيل أكثر. أعطِ الأولوية للسؤال الجديد عند المقاطعة ولا تواصل الجواب السابق. التزم بالفضاء والمعلومات الموثوقة، ولا تدع البحث دون أداة.');
       if(question){userEcho=true;this.lastAgentQuestion=options.readText?'قراءة النص المختار':question;if(options.readText)session.sendContextualUpdate('طلب الزائر قراءة نص تعليمي جاهز. اقرئي أو اقرأ النص التالي كما هو كاملًا دون ترحيب جديد أو تلخيص أو إضافة معلومات. إذا قاطع الزائر القراءة توقّف واستمع لسؤاله.');session.sendUserMessage(question);}
     }catch(e){
       if(run!==this.agentRun||this.dead)return;this.busy=false;
-      const notice=e.status===401?'مفتاح ElevenLabs غير صالح. أعد إدخاله في إعدادات الصوت.':e.status===403?'المفتاح لا يسمح بالوصول إلى مساعد هذا القسم. راجع صلاحيات ElevenAgents للمفتاح والحساب.':e.message==='MISSING_KEY'?'أدخل مفتاحك واضغط تفعيل الصوت والبحث. أبقِ مصادقة المساعد مفعّلة.':e.name==='NotAllowedError'?'اسمح للموقع باستخدام الميكروفون لبدء المحادثة.':'تعذّر بدء المحادثة المحمية. تحقق من الاتصال وصلاحيات المفتاح ونشر المساعد وإذن الميكروفون.';
+      const notice=this.agentFailureNotice(e,connectionStage);this.endAgent();
       this.setState({agentConnecting:false,agentConnected:false,thinking:false,listening:false,voiceNotice:notice});
     }
   }
