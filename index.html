@@ -417,6 +417,7 @@ class Component extends DCLogic {
   }
   setConversationStyle(style) {
     if(!['quiet','proactive'].includes(style))return;
+    if(style==='quiet'){this.cancelSaudiJourney();++this.speakId;this.voiceController?.abort();this.stopAudio();}
     this.agentTurnAllowed=false;this.agentAudibleTurnStarted=false;
     this.setState({conversationStyle:style,speaking:false,thinking:false,voiceNotice:style==='quiet'?'وضع السؤال فقط: لا مبادرات صوتية؛ اسأل بصوتك أو اكتب.':'وضع التفاعل: المبادرة بالحديث متاحة.'});
     this.speaking=false;this.applyConversationVolume();
