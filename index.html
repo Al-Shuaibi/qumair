@@ -344,7 +344,7 @@ class Component extends DCLogic {
     if(this.dead)return;this.raf=requestAnimationFrame(this.loop);
     if(this.speaking&&!this.sampleTesting&&!this.state.sceneActive&&this.state.interruptEnabled&&!this.state.showKey&&!this.state.showQuestions&&!this.state.showChat&&t>(this.nextInterruption||Infinity))this.sceneComet();
     const pose=this.idlePose(t),m=this.m,talking=this.speaking,mo=talking?this.mouthOpen(t/1000):0;
-    this.root.position.set(pose.x,pose.y+(this.state.voiceProfile==='female'?0:.08),0);this.root.rotation.set(talking&&!this.reducedMotion?Math.sin(t/620)*.025:0,pose.ry,pose.tilt+(talking&&!this.reducedMotion?Math.sin(t/900)*.018:0));this.root.scale.setScalar(this.state.voiceProfile==='female'?1:.92);
+    this.root.position.set(pose.x,this.state.voiceProfile==='female'?pose.y:Math.min(pose.y-.13,-.32),0);this.root.rotation.set(talking&&!this.reducedMotion?Math.sin(t/620)*.025:0,pose.ry,pose.tilt+(talking&&!this.reducedMotion?Math.sin(t/900)*.018:0));this.root.scale.setScalar(this.state.voiceProfile==='female'?1:.84);
     this.head.rotation.set(0,0,0);this.star.rotation.z=-.3;this.stars.rotation.set(0,0,0);
     this.eyes.forEach((e,i)=>{e.pupil.visible=true;e.pupil.scale.set(this.state.voiceProfile==='female'?1.12:1,(i?pose.rightEye:pose.leftEye)*(this.state.voiceProfile==='female'?.94:1)*(pose.alarm?1.18:1)*(1-mo*.1),1);e.pupil.position.set(pose.pupilX,pose.pupilY+(talking?mo*.012:0),0);e.happy.visible=false;e.sq.visible=false;e.bw.visible=true;e.bwIn.rotation.z=(i?-1:1)*(pose.alarm?.18:(this.state.voiceProfile==='female'?.04:.025)+(talking?mo*.05:0));e.bw.position.y=.37+(talking?mo*.018:0);});
     m.smile.visible=!talking&&!pose.alarm;m.smile.scale.set((this.state.voiceProfile==='female'?.8:1.2)*pose.smile,this.state.voiceProfile==='female'?.75:.64,1);m.frown.visible=false;m.o.visible=pose.alarm&&!talking;m.tongue.visible=false;m.talk.visible=talking;m.talk.scale.set(.9+mo*.12,.25+mo*.95,1);
@@ -769,6 +769,7 @@ class Component extends DCLogic {
   }
 }
 </script></body></html>
+
 
 
 
